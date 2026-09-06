@@ -1,7 +1,9 @@
-# Sketchman — stick-figure whiteboard video factory
+# Sketchman — colored explainer video factory (v2)
 
-Daily stick-figure money-mindset videos (long 16:9 + shorts 9:16), rendered with
-PIL + ffmpeg, voiced with Edge TTS, auto-uploaded to YouTube via GitHub Actions.
+Daily money-mindset videos (long 16:9 + shorts 9:16): colored flat-style
+illustration scenes with slow zoom motion, natural voiceover, caption pills,
+and bold hook thumbnails — rendered with PIL + ffmpeg, voiced with Edge TTS,
+auto-uploaded to YouTube via GitHub Actions.
 
 ## Schedule (3 long + 3 short / week)
 
@@ -41,7 +43,9 @@ cycles deterministically; add more topics in `topics.py` to extend variety).
 
 ## Files
 
-- `figures.py` — stick-figure scene library (strokes in 0–100 coords)
+- `art.py` — colored flat illustration scenes (10 scenes)
+- `voice.py` — natural voice + pronunciation normalization (Rs/₹/%/abbreviations)
+- `thumbnails.py` — bold hook thumbnails (auto-uploaded with each video)
 - `topics.py` — original money-mindset scripts (long + short queues)
-- `generate.py` — TTS → draw-on render → captions → mux
-- `upload.py` — YouTube Data API upload (env creds, `--short`, `--private`)
+- `generate.py` — TTS → Ken Burns scene motion → caption pills → mux + thumbnail
+- `upload.py` — YouTube Data API upload (env creds, `--short`, `--private`, `--thumbnail`)
