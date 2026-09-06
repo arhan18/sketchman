@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
-"""Sketchman generator: stick-figure whiteboard videos + TTS + captions.
-Usage: python generate.py --format long|short [--topic N] [--out out.mp4]
-State (used topics) kept in state.json next to this file."""
-import argparse, asyncio, json, math, os, random, subprocess, sys
+"""Sketchman v2: colored flat scenes + Ken Burns slideshow + natural voice.
+Usage: python generate.py --format long|short [--topic N]"""
+import argparse, json, os, subprocess
 from PIL import Image, ImageDraw, ImageFont
 
-import figures
+import art
+import thumbnails
 import topics
+import voice
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FPS = 15
 LONG_SIZE, SHORT_SIZE = (1280, 720), (720, 1280)
-VOICE = "en-IN-PrabhatNeural"
 STATE = os.path.join(HERE, "state.json")
-
-random.seed()
 
 def font(size):
     for p in ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
@@ -25,71 +23,30 @@ def font(size):
             except Exception: pass
     return ImageFont.load_default()
 
-def wobble_pts(x1, y1, x2, y2, amp=0.6):
-    dx, dy = x2 - x1, y2 - y1
-    dist = math.hypot(dx, dy) or 1
-    n = max(2, int(dist / 3))
-    nx, ny = -dy / dist, dx / dist
-    pts = []
-    for i in range(n + 1):
-        t = i / n
-        off = math.sin(t * math.pi * 2 + (x1 + y1)) * amp * math.sin(t * math.pi)
-        pts.append((x1 + dx * t + nx * off, y1 + dy * t + ny * off))
-    return pts
-
-def flatten(strokes, W, H):
-    """Strokes -> ordered point-paths in pixels (wobbled)."""
-    paths = []
-    for s in strokes:
-        if s[0] == 'line':
-            _, x1, y1, x2, y2 = s
-            paths.append(wobble_pts(x1 / 100 * W, y1 / 100 * H, x2 / 100 * W, y2 / 100 * H))
-        else:
-            _, cx, cy, r = s
-            cx, cy, r = cx / 100 * W, cy / 100 * H, r / 100 * min(W, H)
-            paths.append([(cx + r * math.cos(t), cy + r * math.sin(t))
-                          for t in [i * 0.25 for i in range(int(2 * math.pi / 0.25) + 1)]])
-    return paths
-
-def draw_partial(dr, paths, frac, W, H, width):
-    total = sum(len(p) - 1 for p in paths)
-    target = int(total * min(1.0, frac))
-    done = 0
-    for p in paths:
-        for i in range(len(p) - 1):
-            if done >= target: return
-            dr.line([p[i], p[i + 1]], fill=(20, 20, 20), width=width)
-            done += 1
-
-async def tts(text, path):
-    import edge_tts
-    await edge_tts.Communicate(text, VOICE).save(path)
-
 def probe_dur(path):
     r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                         "-of", "csv=p=0", path], capture_output=True, text=True)
     return float(r.stdout.strip())
 
-def render_beat(scene_key, caption, dur, W, H, seg_path, fnt, small):
-    strokes = figures.SCENES.get(scene_key, figures.SCENES['grind'])
-    paths = flatten(strokes, W, H * 0.82)
+def render_beat(scene_key, caption, dur, W, H, seg_path):
+    base = art.SCENES.get(scene_key, art.s_grind)(int(W * 1.3), int(H * 1.3))
+    bw, bh = base.size
     n = max(1, int(dur * FPS))
-    draw_n = max(6, int(n * 0.35))
-    width = max(2, W // 320)
     frames_dir = seg_path + "_f"
     os.makedirs(frames_dir, exist_ok=True)
-    cap_h = int(H * 0.16)
+    fnt = font(int(W / 24))
     for f in range(n):
-        img = Image.new("RGB", (W, H), (253, 252, 247))
-        dr = ImageDraw.Draw(img)
-        draw_partial(dr, paths, (f + 1) / draw_n, W, H, width)
-        # caption strip
-        dr.rectangle([0, H - cap_h, W, H], fill=(20, 20, 20))
+        t = f / max(1, n - 1)          # slow zoom-in across the beat
+        zw, zh = int(bw - (bw - W) * t), int(bh - (bh - H) * t)
+        left, top = (bw - zw) // 2, (bh - zh) // 2
+        frame = base.crop((left, top, left + zw, top + zh)).resize((W, H), Image.LANCZOS)
+        dr = ImageDraw.Draw(frame)
         bb = dr.textbbox((0, 0), caption, font=fnt)
-        tw = bb[2] - bb[0]
-        dr.text(((W - tw) / 2, H - cap_h + (cap_h - (bb[3] - bb[1])) / 2),
-                caption, font=fnt, fill=(255, 255, 255))
-        img.save(f"{frames_dir}/f{f:05d}.png")
+        tw, th = bb[2] - bb[0] + 44, bb[3] - bb[1] + 26
+        x0 = (W - tw) / 2
+        dr.rounded_rectangle([x0, H - th - 26, x0 + tw, H - 26], radius=18, fill=(15, 15, 20))
+        dr.text((x0 + 22, H - th - 26 + 13 - bb[1]), caption, font=fnt, fill=(255, 255, 255))
+        frame.save(f"{frames_dir}/f{f:05d}.png")
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-framerate", str(FPS),
                     "-i", f"{frames_dir}/f%05d.png", "-c:v", "libx264",
                     "-pix_fmt", "yuv420p", seg_path], check=True)
@@ -110,15 +67,14 @@ def build(fmt, topic_idx=None):
     t = topics_in[topic_idx % len(topics_in)]
     work = os.path.join(HERE, "work")
     os.makedirs(work, exist_ok=True)
-    fnt = font(int(W / 22))
-    segs, auds = [], []
     print(f"Topic: {t['title']}", flush=True)
+    segs, auds = [], []
     for b, beat in enumerate(t["beats"]):
         a = os.path.join(work, f"b{b}.mp3")
-        asyncio.run(tts(beat[0], a))
+        voice.tts_sync(beat[0], a)
         dur = probe_dur(a) + 0.5
         v = os.path.join(work, f"b{b}.mp4")
-        render_beat(beat[1], beat[2], dur, W, H, v, fnt, vertical)
+        render_beat(beat[1], beat[2], dur, W, H, v)
         segs.append(v); auds.append(a)
         print(f"  beat {b + 1}/{len(t['beats'])}: {dur:.1f}s", flush=True)
     listf = os.path.join(work, "list.txt")
@@ -136,11 +92,13 @@ def build(fmt, topic_idx=None):
     out = os.path.join(HERE, f"{fmt}-{topic_idx}.mp4")
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", vcat, "-i", acat,
                     "-c:v", "copy", "-c:a", "aac", "-shortest", out], check=True)
-    meta = {"title": t["title"], "file": out,
-            "description": f"{t['title']}\n\nWhiteboard money-mindset series. New video every week.\n#money #mindset #finance",
-            "tags": "money mindset,finance,personal finance,motivation"}
-    json.dump(meta, open(os.path.join(HERE, f"{fmt}-{topic_idx}.json"), "w"))
-    print(f"DONE: {out} ({probe_dur(out):.0f}s)", flush=True)
+    thumb = os.path.join(HERE, f"{fmt}-{topic_idx}-thumb.png")
+    thumbnails.make(t["title"], t["beats"][0][1], thumb)
+    json.dump({"title": t["title"], "file": out, "thumbnail": thumb,
+               "description": f"{t['title']}\n\nWhiteboard money-mindset series. New video every week.\n#money #mindset #finance",
+               "tags": "money mindset,finance,personal finance,motivation"},
+              open(os.path.join(HERE, f"{fmt}-{topic_idx}.json"), "w"))
+    print(f"DONE: {out} ({probe_dur(out):.0f}s) + {thumb}", flush=True)
     return out
 
 if __name__ == "__main__":

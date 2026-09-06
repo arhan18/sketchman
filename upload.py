@@ -10,6 +10,7 @@ def main():
     ap.add_argument("video"); ap.add_argument("meta")
     ap.add_argument("--short", action="store_true")
     ap.add_argument("--private", action="store_true")
+    ap.add_argument("--thumbnail", default=None)
     a = ap.parse_args()
     meta = json.load(open(a.meta))
     title = meta["title"] + (" #Shorts" if a.short else "")
@@ -40,6 +41,11 @@ def main():
         status, resp = req.next_chunk()
         if status: print(f"  {int(status.progress() * 100)}%", flush=True)
     print("UPLOADED: https://youtu.be/" + resp["id"])
+    thumb = a.thumbnail or meta.get("thumbnail")
+    if thumb and os.path.exists(thumb):
+        yt.thumbnails().set(videoId=resp["id"],
+                            media_body=MediaFileUpload(thumb)).execute()
+        print("THUMBNAIL SET")
 
 if __name__ == "__main__":
     main()
