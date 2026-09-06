@@ -19,7 +19,7 @@ def hook(title, n=4):
     return " ".join(words[:n]).upper()
 
 def make(title, scene_key, path):
-    img = Image.new("RGB", (W, H), (18, 24, 48))
+    img = Image.new("RGB", (W, H), (13, 13, 18))
     dr = ImageDraw.Draw(img)
     dr.rectangle([0, H - 130, W, H], fill=(255, 190, 40))
     scene = art.SCENES.get(scene_key, art.s_intro)(620, 350)

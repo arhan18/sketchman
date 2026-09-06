@@ -29,24 +29,48 @@ def probe_dur(path):
     return float(r.stdout.strip())
 
 def render_beat(scene_key, caption, dur, W, H, seg_path):
-    base = art.SCENES.get(scene_key, art.s_grind)(int(W * 1.3), int(H * 1.3))
-    bw, bh = base.size
+    base_fn = art.SCENES.get(scene_key, art.s_grind)
     n = max(1, int(dur * FPS))
     frames_dir = seg_path + "_f"
     os.makedirs(frames_dir, exist_ok=True)
     fnt = font(int(W / 24))
-    for f in range(n):
-        t = f / max(1, n - 1)          # slow zoom-in across the beat
-        zw, zh = int(bw - (bw - W) * t), int(bh - (bh - H) * t)
-        left, top = (bw - zw) // 2, (bh - zh) // 2
-        frame = base.crop((left, top, left + zw, top + zh)).resize((W, H), Image.LANCZOS)
-        dr = ImageDraw.Draw(frame)
-        bb = dr.textbbox((0, 0), caption, font=fnt)
-        tw, th = bb[2] - bb[0] + 44, bb[3] - bb[1] + 26
-        x0 = (W - tw) / 2
-        dr.rounded_rectangle([x0, H - th - 26, x0 + tw, H - 26], radius=18, fill=(15, 15, 20))
-        dr.text((x0 + 22, H - th - 26 + 13 - bb[1]), caption, font=fnt, fill=(255, 255, 255))
-        frame.save(f"{frames_dir}/f{f:05d}.png")
+    if H > W:
+        # vertical: landscape ink panel centered upper-middle on black,
+        # caption pill beneath it (art is composed 16:9, never stretch it)
+        bw, bh = int(W * 1.2), int(W * 1.2 * 9 / 16)
+        base = base_fn(bw, bh)
+        panel_h = int(W * 9 / 16)
+        py = int(H * 0.30 - panel_h / 2)
+        for f in range(n):
+            t = f / max(1, n - 1)          # slow zoom-in across the beat
+            zw, zh = int(bw - (bw - W) * t), int(bh - (bh - panel_h) * t)
+            left, top = (bw - zw) // 2, (bh - zh) // 2
+            panel = base.crop((left, top, left + zw, top + zh)).resize((W, panel_h), Image.LANCZOS)
+            frame = Image.new("RGB", (W, H), (13, 13, 18))
+            frame.paste(panel, (0, py))
+            dr = ImageDraw.Draw(frame)
+            bb = dr.textbbox((0, 0), caption, font=fnt)
+            tw, th = bb[2] - bb[0] + 44, bb[3] - bb[1] + 26
+            x0 = (W - tw) / 2
+            cy = py + panel_h + 40
+            dr.rounded_rectangle([x0, cy, x0 + tw, cy + th], radius=18, fill=(28, 28, 34))
+            dr.text((x0 + 22, cy + 13 - bb[1]), caption, font=fnt, fill=(255, 255, 255))
+            frame.save(f"{frames_dir}/f{f:05d}.png")
+    else:
+        base = base_fn(int(W * 1.3), int(H * 1.3))
+        bw, bh = base.size
+        for f in range(n):
+            t = f / max(1, n - 1)          # slow zoom-in across the beat
+            zw, zh = int(bw - (bw - W) * t), int(bh - (bh - H) * t)
+            left, top = (bw - zw) // 2, (bh - zh) // 2
+            frame = base.crop((left, top, left + zw, top + zh)).resize((W, H), Image.LANCZOS)
+            dr = ImageDraw.Draw(frame)
+            bb = dr.textbbox((0, 0), caption, font=fnt)
+            tw, th = bb[2] - bb[0] + 44, bb[3] - bb[1] + 26
+            x0 = (W - tw) / 2
+            dr.rounded_rectangle([x0, H - th - 26, x0 + tw, H - 26], radius=18, fill=(15, 15, 20))
+            dr.text((x0 + 22, H - th - 26 + 13 - bb[1]), caption, font=fnt, fill=(255, 255, 255))
+            frame.save(f"{frames_dir}/f{f:05d}.png")
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-framerate", str(FPS),
                     "-i", f"{frames_dir}/f%05d.png", "-c:v", "libx264",
                     "-pix_fmt", "yuv420p", seg_path], check=True)
