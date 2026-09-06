@@ -21,8 +21,12 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
       - run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-dejavu
-          pip install edge-tts pillow google-api-python-client google-auth
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-dejavu espeak-ng
+          pip install edge-tts kokoro-onnx soundfile pillow google-api-python-client google-auth
+      - uses: actions/cache@v4
+        with:
+          path: models
+          key: kokoro-v1-${{ runner.os }}
       - name: pick format
         id: fmt
         run: |
