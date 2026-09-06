@@ -43,9 +43,14 @@ def main():
     print("UPLOADED: https://youtu.be/" + resp["id"])
     thumb = a.thumbnail or meta.get("thumbnail")
     if thumb and os.path.exists(thumb):
-        yt.thumbnails().set(videoId=resp["id"],
-                            media_body=MediaFileUpload(thumb)).execute()
-        print("THUMBNAIL SET")
+        try:
+            yt.thumbnails().set(videoId=resp["id"],
+                                media_body=MediaFileUpload(thumb)).execute()
+            print("THUMBNAIL SET")
+        except Exception as e:
+            # Non-fatal: channels without phone verification can't set
+            # custom thumbnails (403). Video stays live regardless.
+            print(f"THUMBNAIL SKIPPED (non-fatal): {e}")
 
 if __name__ == "__main__":
     main()
