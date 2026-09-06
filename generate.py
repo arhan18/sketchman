@@ -81,13 +81,8 @@ def build(fmt, topic_idx=None):
     vertical = (fmt == "short")
     W, H = SHORT_SIZE if vertical else LONG_SIZE
     topics_in = topics.SHORT_TOPICS if vertical else topics.LONG_TOPICS
-    st = json.load(open(STATE)) if os.path.exists(STATE) else {"long": [], "short": []}
     if topic_idx is None:
-        avail = [i for i in range(len(topics_in)) if i not in st[fmt]] or list(range(len(topics_in)))
-        if len(avail) == len(topics_in): st[fmt] = []
-        topic_idx = avail[0]
-    st[fmt].append(topic_idx)
-    json.dump(st, open(STATE, "w"))
+        topic_idx = topics.pick(fmt)
     t = topics_in[topic_idx % len(topics_in)]
     work = os.path.join(HERE, "work")
     os.makedirs(work, exist_ok=True)

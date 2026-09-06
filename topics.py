@@ -61,13 +61,66 @@ SHORT_TOPICS = [
          ("Ten percent of little is little. Ten percent for years is freedom. Years beat amounts.", "chart_up", "Years beat amounts"),
          ("Pay yourself first. Everyone else can wait. Especially the version of you that wants new shoes.", "money", "You first"),
      ]},
-    {"title": "Things Rich People Never Buy",
+    {"title": "Why Budgeting Fails (And the One Page Fix)",
      "beats": [
-         ("New car on loan to impress the neighbours? The old rich never do it. Guess who does?", "chart_down", "Never for show"),
-         ("Old rich buy assets. New poor buy liabilities with interest. Same shop. Opposite receipts.", "choice", "Assets, not liabilities"),
-         ("Every rupee is a soldier. Send it to work, not to war. Soldiers compound. Shoppers don't.", "money", "Rupees are soldiers"),
-         ("Look broke. Be free. That is the whole game, and hardly anyone plays it.", "freedom", "Look broke, be free"),
+         ("You open a spreadsheet. Forty columns blink back. Your willpower dies at row three. Budgeting feels impossible.", "grind", "Forty columns"),
+         ("That is the problem. Not discipline. Too many numbers at once. The brain quits.", "trap", "Too many numbers"),
+         ("Now tear it up. One line. Income. Two lines. Expenses. Three lines total. Add a red bar when red.", "think", "Three lines, not forty"),
+         ("The red bar is the whole trick. When it appears, pick one thing to cut. Then one thing only.", "money", "One cut"),
+         ("A page this small fits in your pocket. A spreadsheet never did.", "intro", "One page beats forty"),
+     ]},
+    {"title": "The Compound Path (Or Why Slow Wins the Race)",
+     "beats": [
+         ("Your friend jumps into a hot stock. Up thirty percent in a month. You check your index fund. Zero.", "trap", "Up thirty, down zero"),
+         ("Three months later, his stock is down forty percent. Your zero is still zero. That is the edge.", "chart_down", "His edge reversed"),
+         ("Money that stays the course grows quietly. A percent today. A percent tomorrow. A hundred years later.", "think", "Stay the course"),
+         ("Math punishes the fast. It rewards the stubborn. The fastest path is the slowest one.", "chart_up", "Slow is fast"),
+         ("Your friend needs a home run every month. You need one decision, held for years.", "freedom", "One decision"),
+     ]},
+    {"title": "The Subscription Audit That Saves Thousands",
+     "beats": [
+         ("Scroll your bank app. See those three-dollar charges? Streaming, apps, memberships you forgot you had.", "grind", "Forgotten three dollars"),
+         ("Add them up. Eight subscriptions. Forty-seven dollars a month. Two years. That is a flight.", "money", "Forty-seven dollars"),
+         ("Cancel three. Keep five. Same entertainment. Half the bill. Your future self just breathed.", "choice", "Cancel three"),
+         ("Set one calendar reminder every quarter. Renewals hide in fine print and auto-renew defaults.", "habit", "Quarterly check"),
+         ("The leak was not big. It was many. Fix the many, and the big leaks fix themselves.", "freedom", "Fix the many"),
+      ]},
+    {"title": "The Autopilot Account",
+     "beats": [
+          ("You check your balance once a month. Maybe. What happens in between? Money leaks out like air, silently.", "trap", "Silent leaks"),
+          ("One friend checks daily. She sees every latte, every subscription. Painful. The other set one rule.", "think", "Set one rule"),
+          ("Ten percent of every cheque lands in a separate account before she can name a thing. Automatic.", "money", "Auto-save first"),
+          ("She forgot the account existed for six months. Then she logged in. That small thing had grown into a real cushion.", "chart_up", "Forgot it grew"),
+          ("Willpower is finite. Automation is forever. Pick the rule, then never think about it again.", "habit", "Rule > willpower"),
+     ]},
+    {"title": "The Emergency Fund Gap",
+     "beats": [
+          ("Experts say six months. You say 'when I earn more'. But the gap is not your salary. It is your speed.", "grind", "Speed, not salary"),
+          ("Someone saving five hundred a month with expenses at four hundred has an emergency fund in twelve weeks.", "think", "Speed wins"),
+          ("Someone saving two thousand a month with expenses at two thousand-five has negative sixteen months of runway.", "chart_down", "Negative runway"),
+          ("The emergency fund is not about size. It is about how fast it fills. Cut one thing that renews monthly.", "choice", "Cut one subscription"),
+          ("Start at twenty, start at five thousand. The number you can keep up decides when you stop worrying.", "freedom", "Keep it up"),
+     ]},
+    {"title": "How Your Credit Card Really Works",
+     "beats": [
+          ("Swipe. Done. That is what you think. The card company sees the same swipe and starts a clock counting days.", "trap", "The 21-day lie"),
+          ("Interest kicks in on day twenty-three if the full balance sits unpaid. Not a penny before. Not a penny after.", "think", "Day 23 matters"),
+          ("But only if you paid the statement in full last month. Miss that, and the clock starts yesterday.", "money", "Always full"),
+          ("Cash back feels free. It is not. One three-percent fee on unpaid days erases a year of points.", "chart_down", "Fee eats rewards"),
+          ("Set one reminder: statement balance, full payment, every month. One habit, and the card works for you.", "habit", "One habit"),
      ]},
 ]
 
 BEAT_WALK = ("grind",)  # fallback scene key alias
+
+
+# --- deterministic rotation (stateless runner) ---
+# GitHub Actions runners have no persistent filesystem, so state.json is
+# lost every run. Pick the topic by (day_of_year % len) so we get a
+# different long topic every day and never repeat within the rotation
+# window. Override with --topic N when a specific beat is wanted.
+def pick(fmt):
+    import datetime as dt, topics
+    pool = topics.LONG_TOPICS if fmt == "long" else topics.SHORT_TOPICS
+    day = dt.date.today().toordinal()
+    return day % len(pool)
