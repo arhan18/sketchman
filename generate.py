@@ -46,15 +46,15 @@ def render_beat(scene_key, caption, dur, W, H, seg_path):
             zw, zh = int(bw - (bw - W) * t), int(bh - (bh - panel_h) * t)
             left, top = (bw - zw) // 2, (bh - zh) // 2
             panel = base.crop((left, top, left + zw, top + zh)).resize((W, panel_h), Image.LANCZOS)
-            frame = Image.new("RGB", (W, H), (13, 13, 18))
+            frame = Image.new("RGB", (W, H), (250, 248, 242))
             frame.paste(panel, (0, py))
             dr = ImageDraw.Draw(frame)
             bb = dr.textbbox((0, 0), caption, font=fnt)
             tw, th = bb[2] - bb[0] + 44, bb[3] - bb[1] + 26
             x0 = (W - tw) / 2
             cy = py + panel_h + 40
-            dr.rounded_rectangle([x0, cy, x0 + tw, cy + th], radius=18, fill=(28, 28, 34))
-            dr.text((x0 + 22, cy + 13 - bb[1]), caption, font=fnt, fill=(255, 255, 255))
+            dr.rounded_rectangle([x0, cy, x0 + tw, cy + th], radius=18, fill=(255, 255, 255), outline=(30, 30, 40), width=3)
+            dr.text((x0 + 22, cy + 13 - bb[1]), caption, font=fnt, fill=(30, 30, 40))
             frame.save(f"{frames_dir}/f{f:05d}.png")
     else:
         base = base_fn(int(W * 1.3), int(H * 1.3))
@@ -68,8 +68,8 @@ def render_beat(scene_key, caption, dur, W, H, seg_path):
             bb = dr.textbbox((0, 0), caption, font=fnt)
             tw, th = bb[2] - bb[0] + 44, bb[3] - bb[1] + 26
             x0 = (W - tw) / 2
-            dr.rounded_rectangle([x0, H - th - 26, x0 + tw, H - 26], radius=18, fill=(15, 15, 20))
-            dr.text((x0 + 22, H - th - 26 + 13 - bb[1]), caption, font=fnt, fill=(255, 255, 255))
+            dr.rounded_rectangle([x0, H - th - 26, x0 + tw, H - 26], radius=18, fill=(255, 255, 255), outline=(30, 30, 40), width=3)
+            dr.text((x0 + 22, H - th - 26 + 13 - bb[1]), caption, font=fnt, fill=(30, 30, 40))
             frame.save(f"{frames_dir}/f{f:05d}.png")
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-framerate", str(FPS),
                     "-i", f"{frames_dir}/f%05d.png", "-c:v", "libx264",
