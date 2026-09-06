@@ -1,0 +1,45 @@
+name: daily-sketchman
+
+# 3 long + 3 short per week. Runner days are UTC; 04:30 UTC = 10:00 IST.
+# Mon/Wed/Fri -> long (16:9). Tue/Thu/Sat -> short (9:16). Sun -> rest.
+on:
+  schedule:
+    - cron: "30 4 * * 1,3,5"
+    - cron: "30 4 * * 2,4,6"
+  workflow_dispatch:
+    inputs:
+      format:
+        description: "long or short"
+        required: true
+        default: "short"
+
+jobs:
+  render-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-dejavu
+          pip install edge-tts pillow google-api-python-client google-auth
+      - name: pick format
+        id: fmt
+        run: |
+          DOW=$(date -u +%u)
+          if [ "$DOW" = 1 ] || [ "$DOW" = 3 ] || [ "$DOW" = 5 ]; then F=long; else F=short; fi
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then F="${{ inputs.format }}"; fi
+          echo "format=$F" >> $GITHUB_OUTPUT
+      - name: render
+        run: python generate.py --format ${{ steps.fmt.outputs.format }}
+      - name: upload
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: |
+          F=${{ steps.fmt.outputs.format }}
+          VID=$(ls -t $F-*.mp4 | head -1)
+          META=${VID%.mp4}.json
+          [ "$F" = short ] && FLAG=--short || FLAG=""
+          python upload.py "$VID" "$META" $FLAG
