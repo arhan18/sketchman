@@ -22,7 +22,7 @@ def make(title, scene_key, path):
     img = Image.new("RGB", (W, H), (13, 13, 18))
     dr = ImageDraw.Draw(img)
     dr.rectangle([0, H - 130, W, H], fill=(255, 190, 40))
-    scene = art.SCENES.get(scene_key, art.s_intro)(620, 350)
+    scene = art.SCENES.get(scene_key, art.s_bed_alarm)(620, 350)
     img.paste(scene, (620, 180))
     dr.rectangle([612, 172, 620 + 628, 188 + 358], outline=(255, 255, 255), width=6)
     f = font(92)

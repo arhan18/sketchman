@@ -29,7 +29,7 @@ def probe_dur(path):
     return float(r.stdout.strip())
 
 def render_beat(scene_key, caption, dur, W, H, seg_path):
-    base_fn = art.SCENES.get(scene_key, art.s_grind)
+    base_fn = art.SCENES.get(scene_key, art.s_bed_alarm)
     n = max(1, int(dur * FPS))
     frames_dir = seg_path + "_f"
     os.makedirs(frames_dir, exist_ok=True)
