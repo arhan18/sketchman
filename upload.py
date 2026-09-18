@@ -1,56 +1,275 @@
 #!/usr/bin/env python3
 """Upload a rendered video to YouTube.
-Creds from env: YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET, YOUTUBE_REFRESH_TOKEN.
-Usage: python upload.py <video.mp4> <meta.json> [--short] [--private]
-Skips upload if DRY_RUN=1."""
-import argparse, json, os, sys
+
+Creds come from env: YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET,
+YOUTUBE_REFRESH_TOKEN.  (These are GitHub Actions secrets on CI.)
+
+Usage:
+  python upload.py video.mp4 meta.json [--short] [--private] [--thumbnail f.png] [--force]
+  python upload.py --verify            # check the refresh token + channel (1 quota unit)
+
+Behavior:
+  * DRY_RUN=1 prints what would happen and exits 0.
+  * The one-upload-per-day guard reads state.py; pass --force to override.
+  * invalid_grant -> precise diagnostics + re-auth pointer, exit 2 (no retries).
+  * quota / rate-limit -> retries with exponential backoff (never burns quota
+    chasing a 403 after it has already failed).
+  * Thumbnail failures (common on unverified channels, 403) are non-fatal.
+  * Never logs or prints secrets.
+"""
+import argparse
+import json
+import os
+import re
+import sys
+import time
+
+import state
+
+RETRYABLE_REASONS = {
+    "quotaExceeded": "quota",
+    "userRateLimitExceeded": "quota",
+    "dailyLimitExceeded": "quota",
+    "rateLimitExceeded": "quota",
+    "backendError": "backend",
+    "internalError": "backend",
+    "failedPrecondition": "backend",
+}
+RETRYABLE_STATUS = (429, 500, 502, 503, 504)
+
+
+def _p(level, msg):
+    print(f"[{level}] {msg}", flush=True)
+
+
+def _error_reason(err):
+    reason = getattr(err, "_get_reason", None)
+    if callable(reason):
+        return reason()
+    for m in ("reason", "message", "status"):
+        if getattr(err, m, None):
+            return str(getattr(err, m))
+    return str(err)
+
+
+def _retry_after(err):
+    try:
+        ra = err.resp.get("retry-after") if err.resp else None
+        if ra:
+            return min(int(ra), 600)
+    except Exception:
+        pass
+    return None
+
+
+def _retry_delay(err, attempt):
+    """Seconds to sleep, or None if the error is not worth retrying."""
+    status = getattr(err, "resp", None).status if getattr(err, "resp", None) else None
+    reason = _error_reason(err)
+    ra = _retry_after(err)
+    kind = RETRYABLE_REASONS.get(reason, "backend" if status in RETRYABLE_STATUS else None)
+    if kind is None:
+        return None
+    if kind == "quota":
+        # Quota errors: back off hard, a retry within seconds won't help.
+        return max(ra or 0, min(60 * (2 ** attempt), 600))
+    return max(ra or 0, min(5 * (2 ** attempt), 300))
+
+
+def _reauth_instructions():
+    return (
+        "\nRE-AUTH NEEDED — your YouTube refresh token is dead. Two options:\n"
+        "  1) Fastest: run the one-time walkthrough locally ->\n"
+        "       python reauth.py --client-id $YOUTUBE_CLIENT_ID "
+        "--client-secret $YOUTUBE_CLIENT_SECRET\n"
+        "     (you approve the Google consent screen yourself, then it prints the "
+        "exact `gh secret set` commands).\n"
+        "  2) If tokens keep dying every ~7 days: your OAuth consent screen is still "
+        "in 'Testing' mode.\n"
+        "     Console.cloud.google.com -> APIs & Services -> OAuth consent screen -> "
+        "'Publish app' (Production).\n"
+        "     Testing-mode refresh tokens expire after 7 days; that is the classic "
+        "cause of `invalid_grant`.\n"
+        "  Also possible: the token wasn't used for >6 months, was revoked, or the "
+        "client id/secret changed."
+    )
+
+
+def _load_creds():
+    missing = [k for k in ("YOUTUBE_CLIENT_ID", "YOUTUBE_CLIENT_SECRET",
+                           "YOUTUBE_REFRESH_TOKEN") if not os.getenv(k)]
+    if missing:
+        _p("fail", f"Missing env vars: {', '.join(missing)}. "
+                   f"Set them as GitHub Actions secrets (YOUTUBE_CLIENT_ID, "
+                   f"YOUTUBE_CLIENT_SECRET, YOUTUBE_REFRESH_TOKEN).")
+        sys.exit(2)
+    return os.environ["YOUTUBE_CLIENT_ID"], os.environ["YOUTUBE_CLIENT_SECRET"], \
+        os.environ["YOUTUBE_REFRESH_TOKEN"]
+
+
+def build_creds():
+    cid, secret, rt = _load_creds()
+    from google.oauth2.credentials import Credentials
+    return Credentials(
+        None,
+        refresh_token=rt,
+        client_id=cid,
+        client_secret=secret,
+        token_uri="https://oauth2.googleapis.com/token",
+        scopes=["https://www.googleapis.com/auth/youtube.upload",
+                "https://www.googleapis.com/auth/youtube.readonly"],
+    )
+
+
+def refresh(creds):
+    from google.auth.transport.requests import Request
+    try:
+        creds.refresh(Request())
+        return creds
+    except Exception as e:
+        msg = str(e)
+        if "invalid_grant" in msg or "Token has been expired" in msg:
+            _p("fail", "google.auth RefreshError: invalid_grant "
+                       "(refresh token expired or revoked).")
+            print(_reauth_instructions())
+        else:
+            _p("fail", f"OAuth refresh failed: {msg}")
+        sys.exit(2)
+
+
+def build_yt(creds):
+    from googleapiclient.discovery import build
+    return build("youtube", "v3", credentials=creds, cache_discovery=False)
+
+
+def verify_creds():
+    """Check the token actually works and see the channel. 1 quota unit."""
+    _p("ok", "verify: checking refresh token + channel...")
+    creds = refresh(build_creds())
+    yt = build_yt(creds)
+    res = yt.channels().list(part="snippet,statistics", mine=True).execute()
+    items = res.get("items", [])
+    if not items:
+        _p("fail", "verify: token is valid but no channel is visible. "
+                   "Is the Google account logged into YouTube connected to a "
+                   "channel? (sign-in / channel creation may be needed)")
+        sys.exit(1)
+    ch = items[0]
+    _p("ok", f"verify: channel '{ch['snippet']['title']}' "
+             f"({ch['id']}), subs="
+             f"{ch['statistics'].get('subscriberCount', '?')}")
+    return ch
+
+
+def _upload(yt, title, description, tags, video, max_retries):
+    """Resumable insert with quota-aware retries. Returns response resource."""
+    from googleapiclient.http import MediaFileUpload
+    from googleapiclient.errors import HttpError
+    body = {"snippet": {"title": title[:100], "description": description[:5000],
+                        "tags": [t.strip() for t in (tags or "").split(",") if t.strip()],
+                        "categoryId": "22"},
+            "status": {"privacyStatus": "private", "madeForKids": False}}
+    attempt = 0
+    while True:
+        try:
+            req = yt.videos().insert(
+                part="snippet,status", body=body,
+                media_body=MediaFileUpload(video, resumable=True))
+            resp = None
+            while resp is None:
+                status, resp = req.next_chunk(num_retries=2)
+                if status:
+                    _p("info", f"  upload {int(status.progress() * 100)}%")
+            return resp
+        except HttpError as e:
+            if attempt >= max_retries:
+                _p("fail", f"upload failed after {max_retries} retries: "
+                           f"{_error_reason(e)}")
+                raise
+            delay = _retry_delay(e, attempt)
+            if delay is None:
+                reason = _error_reason(e)
+                if e.resp and e.resp.status in (401, 403) and \
+                        any(x in reason for x in ("auth", "forbidden", "denied")):
+                    _p("fail", f"auth error during upload: {reason}")
+                    print(_reauth_instructions())
+                    sys.exit(2)
+                _p("fail", f"non-retryable upload error: {reason}")
+                raise
+            _p("warn", f"retry in {delay}s (attempt {attempt + 1}/{max_retries}: "
+                       f"status={e.resp.status} reason={_error_reason(e)})")
+            time.sleep(delay)
+            attempt += 1
+
+
+def set_thumbnail(yt, video_id, thumb_path):
+    """Best-effort thumbnail. Unverified channels can't set custom thumbnails
+    (403) — log and keep going, the video stays live."""
+    from googleapiclient.http import MediaFileUpload
+    try:
+        yt.thumbnails().set(videoId=video_id,
+                            media_body=MediaFileUpload(thumb_path)).execute()
+        _p("ok", "THUMBNAIL SET")
+    except Exception as e:
+        msg = _error_reason(e)
+        if "403" in str(e) or "forbidden" in msg.lower():
+            _p("warn", "THUMBNAIL SKIPPED (non-fatal): custom thumbnails need a "
+                       "verified channel")
+        else:
+            _p("warn", f"THUMBNAIL SKIPPED (non-fatal): {msg}")
+            raise SystemExit(0)
+
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("video"); ap.add_argument("meta")
+    ap.add_argument("--verify", action="store_true",
+                    help="check refresh token + channel, then exit")
+    ap.add_argument("video", nargs="?")
+    ap.add_argument("meta", nargs="?")
     ap.add_argument("--short", action="store_true")
     ap.add_argument("--private", action="store_true")
     ap.add_argument("--thumbnail", default=None)
+    ap.add_argument("--force", action="store_true",
+                    help="ignore the 1-upload-per-day guard")
+    ap.add_argument("--max-retries", type=int, default=3)
     a = ap.parse_args()
+
+    if a.verify:
+        verify_creds()
+        return
+
+    if not a.video or not a.meta:
+        ap.error("video and meta.json are required (or use --verify)")
+
     meta = json.load(open(a.meta))
     title = meta["title"] + (" #Shorts" if a.short else "")
+    fmt = "short" if a.short else "long"
+
     if os.getenv("DRY_RUN") == "1":
-        print(f"DRY_RUN: would upload {a.video} as '{title}'")
+        _p("ok", f"DRY_RUN: would upload {a.video} as '{title}'")
         return
-    from google.oauth2.credentials import Credentials
-    from google.auth.transport.requests import Request
-    from googleapiclient.discovery import build
-    from googleapiclient.http import MediaFileUpload
-    creds = Credentials(None, refresh_token=os.environ["YOUTUBE_REFRESH_TOKEN"],
-                        client_id=os.environ["YOUTUBE_CLIENT_ID"],
-                        client_secret=os.environ["YOUTUBE_CLIENT_SECRET"],
-                        token_uri="https://oauth2.googleapis.com/token",
-                        scopes=["https://www.googleapis.com/auth/youtube.upload"])
-    creds.refresh(Request())
-    yt = build("youtube", "v3", credentials=creds)
-    req = yt.videos().insert(
-        part="snippet,status",
-        body={"snippet": {"title": title[:100], "description": meta.get("description", ""),
-                          "tags": meta.get("tags", "").split(","),
-                          "categoryId": "22"},
-              "status": {"privacyStatus": "private" if a.private else "public",
-                         "madeForKids": False}},
-        media_body=MediaFileUpload(a.video, resumable=True))
-    resp = None
-    while resp is None:
-        status, resp = req.next_chunk()
-        if status: print(f"  {int(status.progress() * 100)}%", flush=True)
-    print("UPLOADED: https://youtu.be/" + resp["id"])
+
+    # Quota guard: one upload per format per calendar day unless --force.
+    if not a.force and state.already_uploaded(fmt):
+        _p("warn", f"already uploaded a {fmt} today; skipping "
+                   "(1/day quota guard). Use --force to override.")
+        sys.exit(0)
+
+    _p("ok", f"uploading '{title}' ({a.video})")
+    creds = refresh(build_creds())
+    yt = build_yt(creds)
+    resp = _upload(yt, title, meta.get("description", ""),
+                   meta.get("tags", ""), a.video, a.max_retries)
+    vid = resp["id"]
+    _p("ok", f"UPLOADED: https://youtu.be/{vid}")
+
     thumb = a.thumbnail or meta.get("thumbnail")
     if thumb and os.path.exists(thumb):
-        try:
-            yt.thumbnails().set(videoId=resp["id"],
-                                media_body=MediaFileUpload(thumb)).execute()
-            print("THUMBNAIL SET")
-        except Exception as e:
-            # Non-fatal: channels without phone verification can't set
-            # custom thumbnails (403). Video stays live regardless.
-            print(f"THUMBNAIL SKIPPED (non-fatal): {e}")
+        set_thumbnail(yt, vid, thumb)
+
+    topic_key = os.path.basename(a.video).rsplit(".mp4", 1)[0]
+    state.record_upload(fmt, topic_key, f"https://youtu.be/{vid}")
+
 
 if __name__ == "__main__":
     main()

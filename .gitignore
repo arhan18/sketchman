@@ -1,0 +1,16 @@
+# render artifacts (regenerated every run)
+*.mp4
+*-thumb.png
+short-*.json
+long-*.json
+work/
+
+# model downloads are cached by GitHub Actions (not committed)
+models/
+
+# re-auth token output — never commit
+rt.bin.json
+
+# python
+__pycache__/
+*.pyc

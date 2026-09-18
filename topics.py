@@ -111,7 +111,7 @@ SHORT_TOPICS = [
      ]},
 ]
 
-BEAT_WALK = ("grind",)  # fallback scene key alias
+BEAT_WALK = ("bed_alarm",)  # fallback scene key alias
 
 
 # --- deterministic rotation (stateless runner) ---

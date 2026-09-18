@@ -19,7 +19,8 @@ def _u(W, H, s=1.0): return min(W, H) / 100 * s
 
 
 def _base(W, H):
-    return Image.new("RGB", (W, H), PAPER), ImageDraw.Draw(Image.new("RGB", (W, H), PAPER))
+    img = Image.new("RGB", (W, H), PAPER)
+    return img, ImageDraw.Draw(img)
 
 
 # ---------- primitives ----------
@@ -35,6 +36,11 @@ def face(dr, X, Y, u, mood='neutral'):
         dr.arc([X - 2 * u, Y + 0.5 * u, X + 2 * u, Y + 3.5 * u], 10, 170, fill=INK, width=2)
     elif mood == 'sad':
         dr.arc([X - 2 * u, Y + 1.5 * u, X + 2 * u, Y + 3.5 * u], 190, 350, fill=INK, width=2)
+    elif mood == 'worried':
+        # raised inner brows + small open mouth
+        dr.line([(X - 1.8 * u, Y - 2.6 * u), (X - 0.4 * u, Y - 2.0 * u)], fill=INK, width=2)
+        dr.line([(X + 1.8 * u, Y - 2.6 * u), (X + 0.4 * u, Y - 2.0 * u)], fill=INK, width=2)
+        dr.ellipse([X - 0.9 * u, Y + 1.8 * u, X + 0.9 * u, Y + 3.2 * u], outline=INK, width=2)
     else:
         dr.line([(X - 1.5 * u, Y + 2.4 * u), (X + 1.5 * u, Y + 2.4 * u)], fill=INK, width=2)
     # nose
@@ -77,14 +83,18 @@ def bag(dr, X, Y, u):
     dr.text((X - 3.5 * u, Y - 3 * u), "$$$", fill=GOLD)
 
 
-def pct(dr, X, Y, val, u, r=18):
+def pct(dr, X, Y, val, u):
     """Draw '10%' style text literally."""
-    d = ImageDraw.Draw(dr._image) if hasattr(dr, '_image') else dr
-    d.text((X - 7 * u, Y - 4 * u), f"{val}%", fill=GREEN, font_size=int(16 * u / 4))
+    dr.text((X - 7 * u, Y - 4 * u), f"{val}%", fill=GREEN)
 
 
 def horizon(dr, W, H, frac=0.76):
     dr.line([(0, H * frac), (W, H * frac)], fill=FAINT, width=2)
+
+
+def ground_shadow(dr, X, Y, w):
+    """Soft grounding under a subject so figures don't float on blank paper."""
+    dr.ellipse([X - w / 2, Y, X + w / 2, Y + w * 0.12], fill=GOLD_SOFT)
 
 
 def hatch(dr, x0, y0, x1, y1, col, w=3, space=8):
@@ -204,7 +214,11 @@ def s_compare(W, H):
     person(dr, W * 0.28, H * 0.60, 0.85, 'walk', 'neutral')  # grinding
     person(dr, W * 0.62, H * 0.60, 0.85, 'arms_up', 'happy')  # free
     dr.line([(W * 0.22, H * 0.64), (W * 0.28, H * 0.52)], fill=INK, width=3)  # bag strap
+    ground_shadow(dr, W * 0.28, H * 0.74, 40)   # under grinder
+    bag(dr, W * 0.20, H * 0.46, 0.7)            # heavy daily bag
     dr.line([(W * 0.68, H * 0.44), (W * 0.72, H * 0.60)], fill=FAINT, width=4)  # sunhat/cloud
+    for i in range(3):                          # savings stack beside free person
+        coin(dr, W * 0.62 + 14, H * 0.66 - i * 6, 0.35)
     return img
 
 
@@ -214,8 +228,14 @@ def s_choice_forks(W, H):
     horizon(dr, W, H, 0.8)
     px, py = W * 0.5, H * 0.72
     person(dr, px, H * 0.52, 0.8)
+    ground_shadow(dr, px, H * 0.66, 36)
     dr.line([(px, H * 0.68), (W * 0.2, H * 0.30)], fill=GREEN, width=8)   # up
-    dr.line([(px, H * 0.68), (W * 0.8, H * 0.30)], fill=RED, width=8)    # down
+    dr.line([(px, H * 0.68), (W * 0.8, H * 0.30)], fill=RED, width=8)     # down
+    dr.text((W * 0.14, H * 0.26), "save", fill=GREEN)                     # path sign
+    dr.text((W * 0.76, H * 0.26), "spend", fill=RED)
+    for i in range(3):                          # reward at the save-path end
+        coin(dr, W * 0.20 - 8, H * 0.34 - i * 6, 0.35)
+    bag(dr, W * 0.78, H * 0.30, 0.6)            # stuff the spend path buys
     return img
 
 
@@ -269,6 +289,10 @@ def s_phone_scroll(W, H):
         sy = ph_y + 14 + i * 10
         dr.ellipse([ph_x - 16, sy - 4, ph_x + 16, sy + 4], fill=col)
     person(dr, W * 0.50, H * 0.70, 0.9, 'stand', 'neutral')
+    ground_shadow(dr, W * 0.50, H * 0.86, 34)
+    # membership $$$ floating off the screen
+    for i in range(3):
+        dr.text((ph_x + 34, ph_y + 6 + i * 14), "$", fill=RED)
     return img
 
 
@@ -325,6 +349,10 @@ def s_leak(W, H):
     dr.line([(W * 0.20, H * 0.30), (W * 0.80, H * 0.30)], fill=FAINT, width=4)
     dr.line([(W * 0.55, H * 0.30), (W * 0.55, H * 0.50)], fill=FAINT, width=3)
     dr.arc([W * 0.48, H * 0.44, W * 0.62, H * 0.56], 0, 180, fill=GOLD, width=3)  # leak splat
+    # money dripping in with the water — small subscriptions falling
+    for i in range(3):
+        coin(dr, bx + 34 + i * 10, by + 6 + i * 10, 0.3)
+    dr.text((W * 0.66, H * 0.30), "$$", fill=GOLD)   # what's leaking
     return img
 
 
@@ -379,6 +407,9 @@ def s_clock_min(W, H):
     dr.ellipse([cx + (R + 4) * math.cos(a9) - 8, cy + (R + 4) * math.sin(a9) - 8,
                 cx + (R + 4) * math.cos(a9) + 8, cy + (R + 4) * math.sin(a9) + 8],
                outline=GOLD, width=3)
+    dr.text((cx - R, cy + R + 22), "9 min/day", fill=GOLD)   # label
+    for i in range(3):                          # time saved = money
+        coin(dr, cx - 22 + i * 16, cy + R + 34, 0.35)
     return img
 
 
@@ -398,10 +429,13 @@ def s_door(W, H):
     img, dr = _base(W, H)
     horizon(dr, W, H, 0.78)
     person(dr, W * 0.50, H * 0.56, 0.85, 'stand', 'neutral')
+    ground_shadow(dr, W * 0.50, H * 0.70, 30)
     # door
     dx, dy = W * 0.42, H * 0.36
     dr.rectangle([dx - 24, dy, dx + 24, dy + 48], fill=BLUE_SOFT, outline=INK, width=LW)
     dr.arc([dx - 18, dy + 6, dx + 18, dy + 42], 180, 0, fill=INK, width=3)  # open arc
+    for i in range(3):                          # freedom waiting just outside
+        coin(dr, dx + 34, dy + 12 + i * 7, 0.3)
     return img
 
 
@@ -456,6 +490,10 @@ def s_chart_down(W, H):
     dr.line(pts, fill=RED, width=7, joint="curve")
     dr.ellipse([pts[-1][0] - 8, pts[-1][1] - 8, pts[-1][0] + 8, pts[-1][1] + 8],
                fill=RED)
+    # days/values dropping off the chart edge
+    for i in range(3):
+        coin(dr, W * 0.22 - i * 2, y0 + 30 + i * 12, 0.3)
+    dr.text((x0, y0 + h + 14), "days", fill=RED)
     return img
 
 
@@ -584,7 +622,7 @@ def s_remote_door(W, H):
     # TV / remote in foreground left
     dr.rectangle([W * 0.12, H * 0.66, W * 0.34, H * 0.88], fill=(235, 235, 240), outline=INK, width=LW)
     dr.ellipse([W * 0.20, H * 0.76, W * 0.28, H * 0.82], fill=INK)  # screen
-    dr.ellipse([W * 0.26, H * 0.80, W * 0.31, H * 0.85], fill=0)  # button glow
+    dr.ellipse([W * 0.26, H * 0.80, W * 0.31, H * 0.85], fill=GOLD)  # button glow
     # open door in background right
     dx = W * 0.74
     dr.rectangle([dx - 4, H * 0.30, dx + 30, H * 0.78], fill=BLUE_SOFT, outline=INK, width=LW)
