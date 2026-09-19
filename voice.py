@@ -187,12 +187,39 @@ async def _edge_save(text: str, path: str) -> None:
 
 
 def tts_sync(text: str, path: str) -> None:
-    """Free Kokoro first, Edge fallback. Output is always mp3 at `path`."""
-    import asyncio
-    wav_tmp = path + ".kokoro.wav"
+    """Free Kokoro first, Edge fallback. Output is always mp3 at `path`.
     
-    # Try Kokoro first
-    if _kokoro_probe():
+    Set TTS_ENGINE=edge to force Edge TTS (skip Kokoro entirely).
+    Set TTS_ENGINE=kokoro to force Kokoro (no fallback).
+    Default: auto-detect with fallback.
+    """
+    import asyncio
+    engine_override = os.getenv("TTS_ENGINE", "").strip().lower()
+    wav_tmp = path + ".kokoro.wav"
+
+    # If forced to Edge, skip Kokoro entirely
+    if engine_override == "edge":
+        _log("info", "TTS_ENGINE=edge forced, skipping Kokoro", voice=EDGE_VOICE)
+        last: Optional[Exception] = None
+        for attempt in (1, 2, 3):
+            try:
+                asyncio.run(_edge_save(text, path))
+                _log("info", "TTS generated with Edge (forced)", voice=EDGE_VOICE, output=path)
+                return
+            except Exception as e:
+                last = e
+                if attempt < 3:
+                    delay = 5 * attempt
+                    _log("warn", "edge TTS attempt failed, retrying",
+                         attempt=attempt, max_attempts=3, delay=delay, error=str(e))
+                    time.sleep(delay)
+                else:
+                    _log("error", "edge TTS failed after retries", error=str(e))
+        _log("fail", "Edge TTS failed (forced mode)", last_error=str(last))
+        raise RuntimeError(f"TTS failed (edge forced): {last}")
+
+    # Try Kokoro first (unless forced to skip)
+    if engine_override != "kokoro" and _kokoro_probe():
         try:
             _log("debug", "generating speech with Kokoro", text_preview=text[:50])
             _kokoro_wav(text, wav_tmp)

@@ -29,6 +29,7 @@ concurrency:
 env:
   LOG_LEVEL: info
   PYTHONUNBUFFERED: 1
+  TTS_ENGINE: ""  # set to "edge" to force Edge TTS, leave empty for auto-detect
 
 jobs:
   render-upload:
@@ -151,13 +152,9 @@ print(f'[ok] Quota check passed: {state.quota_remaining()} units remaining')
         run: |
           set -o pipefail
           F=${{ steps.fmt.outputs.format }}
-          VID=$(ls -t $F-*.mp4 | head -1)
-          META=${VID%.mp4}.json
           [ "$F" = short ] && FLAG=--short || FLAG=""
-          python upload.py "$VID" "$META" $FLAG 2>&1 | tee /tmp/upload.log
+          python upload.py $FLAG 2>&1 | tee /tmp/upload.log
 
-      # Persist state.json back to the repo (git store) + cache store, so the
-      # 1/day guard and rotation survive between ephemeral runners.
       - name: commit state
         if: always() && env.SKIP != '1'
         continue-on-error: true
@@ -165,13 +162,18 @@ print(f'[ok] Quota check passed: {state.quota_remaining()} units remaining')
           set -eu
           git config user.name "sketchman-bot"
           git config user.email "actions@github.com"
-          if git status --porcelain -- state.json | grep -q .; then
-            git add state.json
+          CHANGED=0
+          for f in state.json latest.json; do
+            if [ -f "$f" ] && git status --porcelain -- "$f" | grep -q .; then
+              git add "$f"
+              CHANGED=1
+            fi
+          done
+          if [ "$CHANGED" = "1" ]; then
             git commit -m "ci: record state $(date -u +%Y-%m-%d)" || true
-            # Use force-with-lease to avoid overwriting concurrent updates
             git push origin HEAD --force-with-lease || echo "Push failed, state saved in cache"
           else
-            echo "state.json unchanged"
+            echo "state.json and latest.json unchanged"
           fi
 
       # Upload logs as artifacts for debugging
@@ -224,7 +226,7 @@ State: $(python state.py summary 2>/dev/null || echo 'unavailable')"
             "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 Format: ${{ steps.fmt.outputs.format }}
-Video: $(ls -t ${{ steps.fmt.outputs.format }}-*.mp4 | head -1)
-URL: $(python -c "import state; print(state.load().get('links', {}).get('$(date -u +%Y-%m-%d)', {}).get('${{ steps.fmt.outputs.format }}', 'unknown'))")
+Video: $(python -c "import json,os; m=json.load(open('latest.json')) if os.path.exists('latest.json') else {}; print(m.get('video','unknown'))" 2>/dev/null || echo 'unknown')
+URL: $(python -c "import state; print(state.load().get('links', {}).get('$(date -u +%Y-%m-%d)', {}).get('${{ steps.fmt.outputs.format }}', 'unknown'))" 2>/dev/null || echo 'unknown')
 
 State: $(python state.py summary 2>/dev/null || echo 'unavailable')"

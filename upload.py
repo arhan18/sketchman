@@ -234,6 +234,45 @@ def set_thumbnail(yt, video_id: str, thumb_path: str) -> None:
         # Non-fatal: don't exit, just continue
 
 
+def _resolve_files(video: str | None, meta: str | None, short: bool) -> tuple[str, str, str | None]:
+    """Resolve video/meta/thumbnail from args or latest.json manifest."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    manifest_path = os.path.join(here, "latest.json")
+
+    if video and meta:
+        return video, meta, None
+
+    if os.path.exists(manifest_path):
+        try:
+            with open(manifest_path) as f:
+                manifest = json.load(f)
+            v = manifest.get("video")
+            m = manifest.get("meta")
+            t = manifest.get("thumbnail")
+            if v and m and os.path.exists(v) and os.path.exists(m):
+                _log("info", "resolved files from latest.json manifest", video=v, meta=m)
+                return v, m, t
+            else:
+                _log("warn", "latest.json has missing files, falling back to glob")
+        except Exception as e:
+            _log("warn", "failed to read latest.json", error=str(e))
+
+    fmt = "short" if short else "long"
+    import glob
+    candidates = sorted(glob.glob(os.path.join(here, f"{fmt}-*.mp4")),
+                        key=os.path.getmtime, reverse=True)
+    if not candidates:
+        _log("fail", "no video files found", format=fmt)
+        sys.exit(1)
+    v = candidates[0]
+    m = v.rsplit(".mp4", 1)[0] + ".json"
+    if not os.path.exists(m):
+        _log("fail", "meta file not found for video", video=v, meta=m)
+        sys.exit(1)
+    _log("info", "resolved files via glob", video=v, meta=m)
+    return v, m, None
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--verify", action="store_true",
@@ -252,46 +291,51 @@ def main() -> None:
         verify_creds()
         return
 
-    if not a.video or not a.meta:
-        ap.error("video and meta.json are required (or use --verify)")
+    video, meta_path, manifest_thumb = _resolve_files(a.video, a.meta, a.short)
 
-    meta = json.load(open(a.meta))
+    meta = json.load(open(meta_path))
     title = meta["title"] + (" #Shorts" if a.short else "")
     fmt = "short" if a.short else "long"
 
     if os.getenv("DRY_RUN") == "1":
-        _log("info", "DRY_RUN: would upload", video=a.video, title=title)
+        _log("info", "DRY_RUN: would upload", video=video, title=title)
         return
 
-    # Quota guard: one upload per format per calendar day unless --force.
+    # Validate video file before attempting upload
+    if not os.path.exists(video):
+        _log("fail", "video file not found", video=video)
+        sys.exit(1)
+    vsize = os.path.getsize(video)
+    if vsize < 10_000:
+        _log("fail", "video file too small, likely corrupt", video=video, size_bytes=vsize)
+        sys.exit(1)
+    _log("info", "video file OK", video=video, size_mb=round(vsize / 1024 / 1024, 1))
+
     if not a.force and state.already_uploaded(fmt):
-        _log("warn", "already uploaded this format today; skipping (1/day guard)",
-             format=fmt)
+        _log("warn", "already uploaded this format today; skipping (1/day guard)", format=fmt)
         _log("info", "Use --force to override")
         sys.exit(0)
 
-    # Additional quota check: don't upload if we'd exceed daily quota
     if not a.force and not state.can_upload():
         remaining = state.quota_remaining()
-        _log("warn", "insufficient YouTube quota remaining", remaining=remaining,
-             needed=1600)
+        _log("warn", "insufficient YouTube quota remaining", remaining=remaining, needed=1600)
         _log("info", "Use --force to override")
         sys.exit(0)
 
-    _log("info", "starting upload", title=title, video=a.video, format=fmt)
+    _log("info", "starting upload", title=title, video=video, format=fmt)
     creds = refresh(build_creds())
     yt = build_yt(creds)
     try:
         resp = _upload(yt, title, meta.get("description", ""),
-                       meta.get("tags", ""), a.video, a.max_retries)
+                       meta.get("tags", ""), video, a.max_retries)
         vid = resp["id"]
         _log("info", "UPLOADED", url=f"https://youtu.be/{vid}")
 
-        thumb = a.thumbnail or meta.get("thumbnail")
+        thumb = a.thumbnail or manifest_thumb or meta.get("thumbnail")
         if thumb and os.path.exists(thumb):
             set_thumbnail(yt, vid, thumb)
 
-        topic_key = os.path.basename(a.video).rsplit(".mp4", 1)[0]
+        topic_key = os.path.basename(video).rsplit(".mp4", 1)[0]
         state.record_upload(fmt, topic_key, f"https://youtu.be/{vid}")
         _log("info", "upload recorded in state", topic_key=topic_key, format=fmt)
     except Exception as e:

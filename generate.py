@@ -199,10 +199,26 @@ def build(fmt: str, topic_idx: int | None = None) -> str:
     out = os.path.join(HERE, f"{fmt}-{topic_idx}.mp4")
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0",
                     "-i", listf, "-c", "copy", out], check=True)
-    
+
+    # Validate the output video is playable
+    try:
+        total_dur = probe_dur(out)
+        if total_dur < 1.0:
+            _log("fail", "output video too short or invalid", duration=total_dur, file=out)
+            sys.exit(1)
+    except Exception as e:
+        _log("fail", "output video validation failed (ffprobe error)", file=out, error=str(e))
+        sys.exit(1)
+
+    # Check file size is reasonable (>10KB for a real video)
+    file_size = os.path.getsize(out)
+    if file_size < 10_000:
+        _log("fail", "output video suspiciously small", file=out, size_bytes=file_size)
+        sys.exit(1)
+
     thumb = os.path.join(HERE, f"{fmt}-{topic_idx}-thumb.png")
     thumbnails.make(t["title"], t["beats"][0][1], thumb)
-    
+
     meta = {
         "title": t["title"],
         "file": out,
@@ -211,11 +227,27 @@ def build(fmt: str, topic_idx: int | None = None) -> str:
         "tags": "money mindset,finance,personal finance,motivation"
     }
     json.dump(meta, open(os.path.join(HERE, f"{fmt}-{topic_idx}.json"), "w"))
-    
-    total_dur = probe_dur(out)
+
+    # Write latest.json manifest so upload.py can find this run's output deterministically
+    manifest = {
+        "format": fmt,
+        "topic_idx": topic_idx,
+        "video": out,
+        "meta": os.path.join(HERE, f"{fmt}-{topic_idx}.json"),
+        "thumbnail": thumb,
+        "rendered_at": datetime.utcnow().isoformat() + "Z",
+        "duration_seconds": total_dur,
+        "file_size": file_size,
+    }
+    manifest_path = os.path.join(HERE, "latest.json")
+    tmp_path = manifest_path + ".tmp"
+    with open(tmp_path, "w") as f:
+        json.dump(manifest, f, indent=2)
+    os.replace(tmp_path, manifest_path)
+
     elapsed = time.time() - start_time
     _log("info", "render complete", output=out, duration=f"{total_dur:.0f}s",
-         elapsed=f"{elapsed:.1f}s", thumbnail=thumb)
+         elapsed=f"{elapsed:.1f}s", thumbnail=thumb, file_size_kb=file_size // 1024)
     return out
 
 
