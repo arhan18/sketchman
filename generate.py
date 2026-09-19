@@ -3,7 +3,14 @@
 Subtitles are the spoken sentences themselves, each timed to its own
 voiceover clip, so text and audio can never drift apart.
 Usage: python generate.py --format long|short [--topic N]"""
-import argparse, json, os, re, subprocess
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 
 import art
@@ -14,28 +21,45 @@ import voice
 HERE = os.path.dirname(os.path.abspath(__file__))
 FPS = 15
 LONG_SIZE, SHORT_SIZE = (1280, 720), (720, 1280)
-STATE = os.path.join(HERE, "state.json")
 
-def font(size):
+# Structured logging
+LOG_LEVELS = {"debug": 0, "info": 1, "warn": 2, "error": 3, "fail": 4}
+CURRENT_LOG_LEVEL = LOG_LEVELS.get(os.getenv("LOG_LEVEL", "info").lower(), 1)
+
+
+def _log(level: str, msg: str, **kwargs) -> None:
+    """Structured logging with optional key-value pairs."""
+    if LOG_LEVELS.get(level, 1) >= CURRENT_LOG_LEVEL:
+        kv = " ".join(f"{k}={v}" for k, v in kwargs.items())
+        ts = datetime.utcnow().isoformat() + "Z"
+        print(f"[{ts}] [{level.upper()}] {msg} {kv}".strip(), flush=True)
+
+
+def font(size: int):
     for p in ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
               "/System/Library/Fonts/Helvetica.ttc",
               "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"]:
         if os.path.exists(p):
-            try: return ImageFont.truetype(p, size)
-            except Exception: pass
+            try:
+                return ImageFont.truetype(p, size)
+            except Exception:
+                pass
     return ImageFont.load_default()
 
-def probe_dur(path):
+
+def probe_dur(path: str) -> float:
     r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                         "-of", "csv=p=0", path], capture_output=True, text=True)
     return float(r.stdout.strip())
 
-def split_sentences(text):
+
+def split_sentences(text: str) -> list[str]:
     """One subtitle per spoken sentence — never show a summary as a subtitle."""
     parts = re.split(r"(?<=[.!?])\s+", text.strip())
     return [p.strip() for p in parts if p.strip()]
 
-def wrap(draw, text, fnt, max_w):
+
+def wrap(draw: ImageDraw.ImageDraw, text: str, fnt: ImageFont.FreeTypeFont, max_w: float) -> list[str]:
     lines, cur = [], ""
     for w in text.split():
         t = (cur + " " + w).strip()
@@ -49,7 +73,9 @@ def wrap(draw, text, fnt, max_w):
         lines.append(cur)
     return lines
 
-def fit_subtitle(draw, text, W, start, minimum=26, max_lines=3, max_w_frac=0.86):
+
+def fit_subtitle(draw: ImageDraw.ImageDraw, text: str, W: int, start: int,
+                 minimum: int = 26, max_lines: int = 3, max_w_frac: float = 0.86):
     """Largest font that fits the sentence in <= max_lines wrapped lines."""
     size = start
     while size > minimum:
@@ -60,7 +86,9 @@ def fit_subtitle(draw, text, W, start, minimum=26, max_lines=3, max_w_frac=0.86)
     fnt = font(minimum)
     return fnt, wrap(draw, text, fnt, W * max_w_frac)[:max_lines]
 
-def pill(dr, cx, y_top, lines, fnt, pad_x=22, pad_y=13):
+
+def pill(dr: ImageDraw.ImageDraw, cx: float, y_top: float, lines: list[str],
+         fnt: ImageFont.FreeTypeFont, pad_x: int = 22, pad_y: int = 13) -> float:
     """Centered white caption pill; returns bottom edge y."""
     widths = [dr.textbbox((0, 0), ln, font=fnt)[2] for ln in lines]
     heights = [dr.textbbox((0, 0), ln, font=fnt)[3] for ln in lines]
@@ -74,7 +102,9 @@ def pill(dr, cx, y_top, lines, fnt, pad_x=22, pad_y=13):
         y += lh + 6
     return y_top + th
 
-def render_segment(scene_key, hook, sentence, dur, W, H, seg_path):
+
+def render_segment(scene_key: str, hook: str, sentence: str, dur: float,
+                   W: int, H: int, seg_path: str) -> None:
     """One spoken sentence: hook pill on top, the sentence itself as the
     bottom subtitle. Video length == audio length exactly, so muxed
     segments concatenate with zero A/V drift."""
@@ -86,6 +116,7 @@ def render_segment(scene_key, hook, sentence, dur, W, H, seg_path):
     hook_fnt = font(max(24, int(W / 40)))
     hook_lines = wrap(meas, hook, hook_fnt, W * 0.86)[:1]
     sub_fnt, sub_lines = fit_subtitle(meas, sentence, W, max(28, int(W / 26)))
+    
     if H > W:
         # vertical: landscape ink panel centered upper-middle on paper,
         # hook pill above it, subtitle pill beneath it (art is composed
@@ -120,13 +151,16 @@ def render_segment(scene_key, hook, sentence, dur, W, H, seg_path):
             th = sum(heights) + 26 + (len(sub_lines) - 1) * 6
             pill(dr, W / 2, H - th - 24, sub_lines, sub_fnt)
             frame.save(f"{frames_dir}/f{f:05d}.png")
+    
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-framerate", str(FPS),
                     "-i", f"{frames_dir}/f%05d.png", "-c:v", "libx264",
                     "-pix_fmt", "yuv420p", seg_path], check=True)
-    for f in os.listdir(frames_dir): os.remove(os.path.join(frames_dir, f))
+    for f in os.listdir(frames_dir):
+        os.remove(os.path.join(frames_dir, f))
     os.rmdir(frames_dir)
 
-def build(fmt, topic_idx=None):
+
+def build(fmt: str, topic_idx: int | None = None) -> str:
     vertical = (fmt == "short")
     W, H = SHORT_SIZE if vertical else LONG_SIZE
     topics_in = topics.SHORT_TOPICS if vertical else topics.LONG_TOPICS
@@ -135,8 +169,10 @@ def build(fmt, topic_idx=None):
     t = topics_in[topic_idx % len(topics_in)]
     work = os.path.join(HERE, "work")
     os.makedirs(work, exist_ok=True)
-    print(f"Topic: {t['title']}", flush=True)
+    _log("info", "starting render", format=fmt, topic_idx=topic_idx, title=t["title"])
+    
     segs = []
+    start_time = time.time()
     for b, beat in enumerate(t["beats"]):
         text, scene, hook = beat[0], beat[1], beat[2]
         for s, sent in enumerate(split_sentences(text)):
@@ -149,24 +185,39 @@ def build(fmt, topic_idx=None):
             subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", v, "-i", a,
                             "-c:v", "copy", "-c:a", "aac", "-shortest", seg],
                            check=True)
-            os.remove(v); os.remove(a)
+            os.remove(v)
+            os.remove(a)
             segs.append(seg)
-            print(f"  beat {b + 1}/{len(t['beats'])} sent {s + 1}: {dur:.1f}s "
-                  f"'{sent[:48]}...'", flush=True)
+            _log("info", "segment rendered", beat=b + 1, total_beats=len(t["beats"]),
+                 sentence=s + 1, duration=f"{dur:.1f}s", text_preview=sent[:48])
+    
     listf = os.path.join(work, "list.txt")
     with open(listf, "w") as f:
-        for s in segs: f.write(f"file '{s}'\n")
+        for s in segs:
+            f.write(f"file '{s}'\n")
+    
     out = os.path.join(HERE, f"{fmt}-{topic_idx}.mp4")
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0",
                     "-i", listf, "-c", "copy", out], check=True)
+    
     thumb = os.path.join(HERE, f"{fmt}-{topic_idx}-thumb.png")
     thumbnails.make(t["title"], t["beats"][0][1], thumb)
-    json.dump({"title": t["title"], "file": out, "thumbnail": thumb,
-               "description": f"{t['title']}\n\nWhiteboard money-mindset series. New video every week.\n#money #mindset #finance",
-               "tags": "money mindset,finance,personal finance,motivation"},
-              open(os.path.join(HERE, f"{fmt}-{topic_idx}.json"), "w"))
-    print(f"DONE: {out} ({probe_dur(out):.0f}s) + {thumb}", flush=True)
+    
+    meta = {
+        "title": t["title"],
+        "file": out,
+        "thumbnail": thumb,
+        "description": f"{t['title']}\n\nWhiteboard money-mindset series. New video every week.\n#money #mindset #finance",
+        "tags": "money mindset,finance,personal finance,motivation"
+    }
+    json.dump(meta, open(os.path.join(HERE, f"{fmt}-{topic_idx}.json"), "w"))
+    
+    total_dur = probe_dur(out)
+    elapsed = time.time() - start_time
+    _log("info", "render complete", output=out, duration=f"{total_dur:.0f}s",
+         elapsed=f"{elapsed:.1f}s", thumbnail=thumb)
     return out
+
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

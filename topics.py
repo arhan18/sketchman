@@ -4,6 +4,12 @@ Style: Ink Explainer formula — second-person cold open, wrong-guess,
 flip, walkthrough, diary-line closer. Short sentences for TTS pauses.
 Each beat: {text (voiceover), scene (figures key), cap (on-screen caption)}."""
 
+import os
+from datetime import datetime
+from typing import Optional
+
+import state
+
 LONG_TOPICS = [
     {"title": "Why Poor People Stay Poor (And Don't Know It)",
       "beats": [
@@ -32,7 +38,7 @@ LONG_TOPICS = [
           ("One habit. Nine minutes. Ten years. It was never a secret. It was just boring enough that most people skipped it.", "bank_diary", "Never a secret"),
       ]},
     {"title": "Why Your Salary Is a Trap (And the Exit Door)",
-     "beats": [
+      "beats": [
           ("Your salary arrives every month. Same date. Same amount. It feels safe. That safety is exactly what makes it a trap.", "money_account", "Safety is the trap"),
           ("You trade thirty days for one payment. Miss one month of work, and the machine stops feeding you. Read that again.", "calendar_grid", "30 days for 1 payment"),
           ("Most people hear this and think the answer is quitting. It's not. The exit door is building one income your boss cannot switch off.", "door", "Build, don't quit"),
@@ -48,21 +54,21 @@ LONG_TOPICS = [
 
 SHORT_TOPICS = [
     {"title": "Rich vs Broke Morning",
-     "beats": [
+      "beats": [
           ("Your alarm rings. You snooze three times, scroll the phone, rush out. Whose morning is that?", "bed_alarm", "Broke morning"),
           ("Now rewind. Wake early. Plan the day. Move the body. Same twenty-four hours. Different owner.", "sleep_plan", "Rich morning"),
           ("Nobody controls your salary today. Everybody controls their morning. That is the whole edge.", "choice_forks", "Same 24 hours"),
           ("Win the morning, and the money follows. It always does. Slowly, then suddenly.", "freedom", "Win the morning"),
       ]},
     {"title": "The 10 Percent Rule",
-     "beats": [
+      "beats": [
           ("Salary comes. Bills go. Nothing left. Sound familiar? That is not a math problem. It is an order problem.", "empty_wallet", "Nothing left?"),
           ("Flip the order. Save ten percent first. Spend the rest guilt-free. The person you pay first wins.", "pay_first", "Save first"),
           ("Ten percent of little is little. Ten percent for years is freedom. Years beat amounts.", "chart_up", "Years beat amounts"),
           ("Pay yourself first. Everyone else can wait. Especially the version of you that wants new shoes.", "money_account", "You first"),
       ]},
     {"title": "Why Budgeting Fails (And the One Page Fix)",
-     "beats": [
+      "beats": [
           ("You open a spreadsheet. Forty columns blink back. Your willpower dies at row three. Budgeting feels impossible.", "spreadsheet", "Forty columns"),
           ("That is the problem. Not discipline. Too many numbers at once. The brain quits.", "empty_wallet", "Too many numbers"),
           ("Now tear it up. One line. Income. Two lines. Expenses. Three lines total. Add a red bar when red.", "three_lines", "Three lines, not forty"),
@@ -70,7 +76,7 @@ SHORT_TOPICS = [
           ("A page this small fits in your pocket. A spreadsheet never did.", "cheat_sheet", "One page beats forty"),
       ]},
     {"title": "The Compound Path (Or Why Slow Wins the Race)",
-     "beats": [
+      "beats": [
           ("Your friend jumps into a hot stock. Up thirty percent in a month. You check your index fund. Zero.", "stock_vs_index", "Up thirty, down zero"),
           ("Three months later, his stock is down forty percent. Your zero is still zero. That is the edge.", "chart_down", "His edge reversed"),
           ("Money that stays the course grows quietly. A percent today. A percent tomorrow. A hundred years later.", "chart_up", "Stay the course"),
@@ -78,49 +84,105 @@ SHORT_TOPICS = [
           ("Your friend needs a home run every month. You need one decision, held for years.", "freedom", "One decision"),
       ]},
     {"title": "The Subscription Audit That Saves Thousands",
-     "beats": [
+      "beats": [
           ("Scroll your bank app. See those three-dollar charges? Streaming, apps, memberships you forgot you had.", "phone_scroll", "Forgotten three dollars"),
           ("Add them up. Eight subscriptions. Forty-seven dollars a month. Two years. That is a flight.", "subscriptions", "Forty-seven dollars"),
           ("Cancel three. Keep five. Same entertainment. Half the bill. Your future self just breathed.", "choice_forks", "Cancel three"),
           ("Set one calendar reminder every quarter. Renewals hide in fine print and auto-renew defaults.", "reminder", "Quarterly check"),
           ("The leak was not big. It was many. Fix the many, and the big leaks fix themselves.", "chart_up", "Fix the many"),
-     ]},
+      ]},
     {"title": "The Autopilot Account",
-     "beats": [
-         ("You check your balance once a month. Maybe. What happens in between? Money leaks out like air, silently.", "leak", "Silent leaks"),
-         ("One friend checks daily. She sees every latte, every subscription. Painful. The other set one rule.", "phone_scroll", "Set one rule"),
-         ("Ten percent of every cheque lands in a separate account before she can name a thing. Automatic.", "money_account", "Auto-save first"),
-         ("She forgot the account existed for six months. Then she logged in. That small thing had grown into a real cushion.", "chart_up", "Forgot it grew"),
-         ("Willpower is finite. Automation is forever. Pick the rule, then never think about it again.", "cheat_sheet", "Rule > willpower"),
-     ]},
+      "beats": [
+          ("You check your balance once a month. Maybe. What happens in between? Money leaks out like air, silently.", "leak", "Silent leaks"),
+          ("One friend checks daily. She sees every latte, every subscription. Painful. The other set one rule.", "phone_scroll", "Set one rule"),
+          ("Ten percent of every cheque lands in a separate account before she can name a thing. Automatic.", "money_account", "Auto-save first"),
+          ("She forgot the account existed for six months. Then she logged in. That small thing had grown into a real cushion.", "chart_up", "Forgot it grew"),
+          ("Willpower is finite. Automation is forever. Pick the rule, then never think about it again.", "cheat_sheet", "Rule > willpower"),
+      ]},
     {"title": "The Emergency Fund Gap",
-     "beats": [
-         ("Experts say six months. You say 'when I earn more'. But the gap is not your salary. It is your speed.", "countdown", "Speed, not salary"),
-         ("Someone saving five hundred a month with expenses at four hundred has an emergency fund in twelve weeks.", "chart_up", "Speed wins"),
-         ("Someone saving two thousand a month with expenses at two thousand-five has negative sixteen months of runway.", "chart_down", "Negative runway"),
-         ("The emergency fund is not about size. It is about how fast it fills. Cut one thing that renews monthly.", "subscriptions", "Cut one"),
-         ("Start at twenty, start at five thousand. The number you can keep up decides when you stop worrying.", "freedom", "Keep it up"),
-     ]},
+      "beats": [
+          ("Experts say six months. You say 'when I earn more'. But the gap is not your salary. It is your speed.", "countdown", "Speed, not salary"),
+          ("Someone saving five hundred a month with expenses at four hundred has an emergency fund in twelve weeks.", "chart_up", "Speed wins"),
+          ("Someone saving two thousand a month with expenses at two thousand-five has negative sixteen months of runway.", "chart_down", "Negative runway"),
+          ("The emergency fund is not about size. It is about how fast it fills. Cut one thing that renews monthly.", "subscriptions", "Cut one"),
+          ("Start at twenty, start at five thousand. The number you can keep up decides when you stop worrying.", "freedom", "Keep it up"),
+      ]},
     {"title": "How Your Credit Card Really Works",
-     "beats": [
-         ("Swipe. Done. That is what you think. The card company sees the same swipe and starts a clock counting days.", "countdown", "The 21-day lie"),
-         ("Interest kicks in on day twenty-three if the full balance sits unpaid. Not a penny before. Not a penny after.", "clock_min", "Day 23 matters"),
-         ("But only if you paid the statement in full last month. Miss that, and the clock starts yesterday.", "money_account", "Always full"),
-         ("Cash back feels free. It is not. One three-percent fee on unpaid days erases a year of points.", "chart_down", "Fee eats rewards"),
-         ("Set one reminder: statement balance, full payment, every month. One habit, and the card works for you.", "reminder", "One habit"),
-     ]},
+      "beats": [
+          ("Swipe. Done. That is what you think. The card company sees the same swipe and starts a clock counting days.", "countdown", "The 21-day lie"),
+          ("Interest kicks in on day twenty-three if the full balance sits unpaid. Not a penny before. Not a penny after.", "clock_min", "Day 23 matters"),
+          ("But only if you paid the statement in full last month. Miss that, and the clock starts yesterday.", "money_account", "Always full"),
+          ("Cash back feels free. It is not. One three-percent fee on unpaid days erases a year of points.", "chart_down", "Fee eats rewards"),
+          ("Set one reminder: statement balance, full payment, every month. One habit, and the card works for you.", "reminder", "One habit"),
+      ]},
 ]
 
 BEAT_WALK = ("bed_alarm",)  # fallback scene key alias
 
 
-# --- deterministic rotation (stateless runner) ---
-# GitHub Actions runners have no persistent filesystem, so state.json is
-# lost every run. Pick the topic by (day_of_year % len) so we get a
-# different long topic every day and never repeat within the rotation
-# window. Override with --topic N when a specific beat is wanted.
-def pick(fmt):
-    import datetime as dt, topics
-    pool = topics.LONG_TOPICS if fmt == "long" else topics.SHORT_TOPICS
+# Structured logging
+LOG_LEVELS = {"debug": 0, "info": 1, "warn": 2, "error": 3, "fail": 4}
+CURRENT_LOG_LEVEL = LOG_LEVELS.get(os.getenv("LOG_LEVEL", "info").lower(), 1)
+
+
+def _log(level: str, msg: str, **kwargs) -> None:
+    """Structured logging with optional key-value pairs."""
+    if LOG_LEVELS.get(level, 1) >= CURRENT_LOG_LEVEL:
+        kv = " ".join(f"{k}={v}" for k, v in kwargs.items())
+        ts = datetime.utcnow().isoformat() + "Z"
+        print(f"[{ts}] [{level.upper()}] {msg} {kv}".strip(), flush=True)
+
+
+# --- deterministic rotation with state tracking ---
+# Uses state.json to track last used topic index for better rotation
+# Falls back to date-based if state unavailable.
+def pick(fmt: str, topic_override: Optional[int] = None) -> int:
+    """Pick a topic index, using state to avoid repeats.
+    
+    Args:
+        fmt: "long" or "short"
+        topic_override: Optional specific topic index to use
+        
+    Returns:
+        Topic index to use
+    """
+    if topic_override is not None:
+        _log("info", "using topic override", format=fmt, topic_idx=topic_override)
+        return topic_override
+    
+    pool = LONG_TOPICS if fmt == "long" else SHORT_TOPICS
+    pool_len = len(pool)
+    
+    # Try to get last used topic from state
+    try:
+        st = state.load()
+        last_topic = st.get("last_topics", {}).get(fmt)
+        
+        if last_topic is not None:
+            # Extract numeric index from topic key (format: "long-N" or "short-N")
+            if isinstance(last_topic, str) and "-" in last_topic:
+                try:
+                    last_idx = int(last_topic.split("-")[-1])
+                    # Pick next topic in rotation
+                    next_idx = (last_idx + 1) % pool_len
+                    _log("info", "picked next topic in rotation", format=fmt,
+                         last_idx=last_idx, next_idx=next_idx)
+                    return next_idx
+                except ValueError:
+                    pass
+    except Exception as e:
+        _log("debug", "could not read state for topic pick, using date fallback", error=str(e))
+    
+    # Fallback: date-based deterministic rotation
+    import datetime as dt
     day = dt.date.today().toordinal()
-    return day % len(pool)
+    idx = day % pool_len
+    _log("info", "picked topic via date fallback", format=fmt, topic_idx=idx)
+    return idx
+
+
+if __name__ == "__main__":
+    import sys
+    fmt = sys.argv[1] if len(sys.argv) > 1 else "short"
+    override = int(sys.argv[2]) if len(sys.argv) > 2 else None
+    print(pick(fmt, override))

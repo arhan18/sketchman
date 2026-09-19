@@ -6,12 +6,16 @@ Fallback: Edge ChristopherNeural if kokoro model/deps are missing, OR
 if the espeak-ng phonemizer hard-fails (probing in a throwaway subprocess
 catches native espeak-ng exit(1) that no Python except can see), so
 CI/local never breaks. Indian-money text normalized so the
-voice never reads symbols literally."""
+voice never reads symbols literally.
+"""
 import os
 import re
 import subprocess
 import sys
 import urllib.request
+import time
+from datetime import datetime
+from typing import Optional
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(HERE, "models")
@@ -30,8 +34,20 @@ EDGE_RATE = "-8%"
 _kokoro = None
 _kokoro_probe_ok = None   # None=unknown, True/False cached once per process
 
+# Structured logging
+LOG_LEVELS = {"debug": 0, "info": 1, "warn": 2, "error": 3, "fail": 4}
+CURRENT_LOG_LEVEL = LOG_LEVELS.get(os.getenv("LOG_LEVEL", "info").lower(), 1)
 
-def normalize(t):
+
+def _log(level: str, msg: str, **kwargs) -> None:
+    """Structured logging with optional key-value pairs."""
+    if LOG_LEVELS.get(level, 1) >= CURRENT_LOG_LEVEL:
+        kv = " ".join(f"{k}={v}" for k, v in kwargs.items())
+        ts = datetime.utcnow().isoformat() + "Z"
+        print(f"[{ts}] [{level.upper()}] {msg} {kv}".strip(), flush=True)
+
+
+def normalize(t: str) -> str:
     t = t.replace("₹", " rupees ")
     t = re.sub(r"Rs\.?\s*([\d,]+)", r"\1 rupees", t)
     t = t.replace("%", " percent ")
@@ -41,59 +57,77 @@ def normalize(t):
     return t
 
 
-def pace(text):
+def pace(text: str) -> str:
     """Short sentences + explicit pauses. Ink-style: never a wall of text.
     ' ... ' renders as a real pause in both Kokoro and Edge."""
     parts = re.split(r"(?<=[.!?])\s+", normalize(text))
     return " ... ".join(p for p in parts if p)
 
 
-def _download(url, dest, tries=3):
+def _download(url: str, dest: str, tries: int = 3) -> None:
     """Streaming download to <dest>.part, atomic rename on success. Retries."""
-    import time as _t
     part = dest + ".part"
     for attempt in range(1, tries + 1):
         try:
             with urllib.request.urlopen(url, timeout=120) as r, open(part, "wb") as f:
                 total = int(r.headers.get("Content-Length") or 0)
+                _log("debug", "downloading model", url=url, dest=dest,
+                     size_mb=round(total / 1024 / 1024, 1) if total else "unknown")
                 while True:
                     chunk = r.read(1 << 16)
                     if not chunk:
                         break
                     f.write(chunk)
             os.replace(part, dest)
+            _log("info", "model downloaded", dest=dest)
             return
         except Exception as e:
             if os.path.exists(part):
-                os.remove(part)
+                try:
+                    os.remove(part)
+                except Exception:
+                    pass
             if attempt == tries:
+                _log("fail", "model download failed", url=url, error=str(e))
                 raise RuntimeError(f"download failed after {tries} tries: {e}")
-            print(f"  retry {attempt}: {os.path.basename(dest)} download error "
-                  f"({e}); sleeping...", flush=True)
-            _t.sleep(5 * attempt)
+            _log("warn", "download retry", attempt=attempt, max_tries=tries,
+                 error=str(e), wait_seconds=5 * attempt)
+            time.sleep(5 * attempt)
 
 
-def _ensure_models():
+def _ensure_models() -> tuple[str, str]:
     os.makedirs(MODEL_DIR, exist_ok=True)
     onnx_p = os.path.join(MODEL_DIR, "kokoro-v1.0.onnx")
     voices_p = os.path.join(MODEL_DIR, "voices-v1.0.bin")
     for path, url in ((onnx_p, ONNX_URL), (voices_p, VOICES_URL)):
         if os.path.exists(path):
-            continue
-        print(f"  downloading {os.path.basename(path)} (~100MB, one-time) "
-              f"— a .part file means an earlier attempt is being finished...",
-              flush=True)
+            # Verify file size (should be > 10MB)
+            size = os.path.getsize(path)
+            if size < 10_000_000:
+                _log("warn", "model file too small, re-downloading",
+                     file=os.path.basename(path), size_bytes=size)
+                os.remove(path)
+            else:
+                _log("debug", "model file OK", file=os.path.basename(path),
+                     size_mb=round(size / 1024 / 1024, 1))
+                continue
+        _log("info", "downloading model", file=os.path.basename(path))
         _download(url, path)
+        # Verify download
+        if not os.path.exists(path) or os.path.getsize(path) < 10_000_000:
+            _log("fail", "model download verification failed", file=path)
+            raise RuntimeError(f"Model download verification failed for {path}")
     return onnx_p, voices_p
 
 
-def _kokoro_wav(text, wav_path):
+def _kokoro_wav(text: str, wav_path: str) -> bool:
     """Returns True on success. Raises on any failure -> caller falls back."""
     global _kokoro
     from kokoro_onnx import Kokoro
     if _kokoro is None:
         onnx_p, voices_p = _ensure_models()
         _kokoro = Kokoro(onnx_p, voices_p)
+        _log("info", "kokoro model loaded", voice=KOKORO_VOICE, speed=KOKORO_SPEED)
     samples, sample_rate = _kokoro.create(
         pace(text), voice=KOKORO_VOICE, speed=KOKORO_SPEED, lang=KOKORO_LANG)
     import soundfile as sf
@@ -101,7 +135,7 @@ def _kokoro_wav(text, wav_path):
     return True
 
 
-def _kokoro_probe():
+def _kokoro_probe() -> bool:
     """Verify kokoro's espeak-ng phonemizer in a THROWAWAY SUBPROCESS.
 
     The phonemizer's bundled espeak-ng dylib can call exit(1) from C when its
@@ -135,7 +169,7 @@ def _kokoro_probe():
               and "Error processing file" not in (r.stderr or ""))
     _kokoro_probe_ok = ok
     if ok:
-        print("  voice: kokoro probe ok (phonemizer usable)", flush=True)
+        _log("info", "kokoro probe ok (phonemizer usable)")
     else:
         if r is not None and (r.stderr or "").strip():
             tail = r.stderr.strip().splitlines()[-1]
@@ -143,50 +177,69 @@ def _kokoro_probe():
             tail = "probe timed out after 60s"
         else:
             tail = f"exit {r.returncode}"
-        print(f"  voice.kokoro_failed: kokoro probe FAILED ({tail}) -> "
-              f"fallback=edge", flush=True)
+        _log("warn", "kokoro probe FAILED, will use Edge fallback", detail=tail)
     return _kokoro_probe_ok
 
 
-async def _edge_save(text, path):
+async def _edge_save(text: str, path: str) -> None:
     import edge_tts
     await edge_tts.Communicate(pace(text), EDGE_VOICE, rate=EDGE_RATE).save(path)
 
 
-def tts_sync(text, path):
+def tts_sync(text: str, path: str) -> None:
     """Free Kokoro first, Edge fallback. Output is always mp3 at `path`."""
     import asyncio
     wav_tmp = path + ".kokoro.wav"
+    
+    # Try Kokoro first
     if _kokoro_probe():
         try:
+            _log("debug", "generating speech with Kokoro", text_preview=text[:50])
             _kokoro_wav(text, wav_tmp)
+            # Convert WAV to MP3
             subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", wav_tmp,
                             "-codec:a", "libmp3lame", "-q:a", "3", path], check=True)
             os.remove(wav_tmp)
-            print("  voice: kokoro/am_adam", flush=True)
+            _log("info", "TTS generated with Kokoro", voice=KOKORO_VOICE, output=path)
             return
         except Exception as e:
             if os.path.exists(wav_tmp):
-                os.remove(wav_tmp)
-            print(f"  voice: kokoro unusable in-process ({e}) -> edge fallback",
-                  flush=True)
-    # Edge path: one retry, then fail loud (a silent pipeline bug is worse
-    # than a failed run that emails you).
-    last = None
-    for attempt in (1, 2):
+                try:
+                    os.remove(wav_tmp)
+                except Exception:
+                    pass
+            _log("warn", "kokoro failed in-process, falling back to Edge",
+                 error=str(e))
+    
+    # Edge fallback with retries
+    _log("info", "using Edge TTS fallback", voice=EDGE_VOICE)
+    last: Optional[Exception] = None
+    for attempt in (1, 2, 3):
         try:
             asyncio.run(_edge_save(text, path))
-            print("  voice: edge/ChristopherNeural", flush=True)
+            _log("info", "TTS generated with Edge", voice=EDGE_VOICE, output=path)
             return
         except Exception as e:
             last = e
-            if attempt == 1:
-                import time as _t
-                print(f"  voice: edge attempt {attempt} failed ({e}); retry in "
-                      f"3s", flush=True)
-                _t.sleep(3)
-    print(f"  voice: BOTH kokoro and edge failed ({last})", flush=True)
+            if attempt < 3:
+                delay = 5 * attempt
+                _log("warn", "edge TTS attempt failed, retrying",
+                     attempt=attempt, max_attempts=3, delay=delay, error=str(e))
+                time.sleep(delay)
+            else:
+                _log("error", "edge TTS failed after retries", error=str(e))
+    
+    _log("fail", "BOTH kokoro and edge TTS failed", last_error=str(last))
     raise RuntimeError(
         f"TTS failed for text {text[:48]!r}: kokoro unavailable and edge_tts "
         f"failed ({last}). Check network / edge-tts. This run will NOT upload "
         f"anything.")
+
+
+if __name__ == "__main__":
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("text")
+    ap.add_argument("output")
+    args = ap.parse_args()
+    tts_sync(args.text, args.output)

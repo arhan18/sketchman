@@ -26,14 +26,21 @@ concurrency:
   group: sketchman-upload
   cancel-in-progress: false
 
+env:
+  LOG_LEVEL: info
+  PYTHONUNBUFFERED: 1
+
 jobs:
   render-upload:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     env:
       FORMAT: ""
       UPLOAD_SKIPPED: "0"
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
@@ -41,10 +48,12 @@ jobs:
       - name: system deps
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg fonts-dejavu espeak-ng
+          sudo apt-get install -y -qq ffmpeg fonts-dejavu espeak-ng libsndfile1
 
       - name: python deps
-        run: pip install -r requirements.txt
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
 
       # Kokoro model (persisted between runs, ~200MB, downloaded once)
       - uses: actions/cache@v4
@@ -58,7 +67,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: work
-          key: sketchman-work-${{ github.run_id }}
+          key: sketchman-work-${{ github.run_number }}
           restore-keys: |
             sketchman-work-
 
@@ -77,7 +86,7 @@ jobs:
 
       # Quota guard: never more than one upload per format per calendar day.
       # --force input bypasses it for intentional re-uploads.
-      - name: quota guard (max 1 upload/day)
+      - name: quota guard (max 1 upload/day per format)
         run: |
           F=${{ steps.fmt.outputs.format }}
           SKIP=0
@@ -91,6 +100,24 @@ jobs:
           fi
           echo "SKIP=$SKIP" >> "$GITHUB_ENV"
           echo "guard: format=$F skip=$SKIP"
+
+      # Quota check: fail fast if we'd exceed daily quota (10000 units default)
+      - name: quota check
+        if: ${{ env.SKIP != '1' }}
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: |
+          set -o pipefail
+          python -c "
+import state
+if not state.can_upload():
+    remaining = state.quota_remaining()
+    print(f'[warn] Insufficient quota: {remaining} units remaining, need ~1600')
+    exit(1)
+print(f'[ok] Quota check passed: {state.quota_remaining()} units remaining')
+" 2>&1 | tee /tmp/quota.log
 
       # Credential check FIRST (1 quota unit): fail fast + alert before any
       # render work if the refresh token is dead.
@@ -119,6 +146,8 @@ jobs:
           ALERT_SMTP_USER: ${{ secrets.ALERT_SMTP_USER }}
           ALERT_SMTP_APP_PASSWORD: ${{ secrets.ALERT_SMTP_APP_PASSWORD }}
           ALERT_SMTP_TO: ${{ secrets.ALERT_SMTP_TO }}
+          ALERT_DISCORD_WEBHOOK: ${{ secrets.ALERT_DISCORD_WEBHOOK }}
+          ALERT_SLACK_WEBHOOK: ${{ secrets.ALERT_SLACK_WEBHOOK }}
         run: |
           set -o pipefail
           F=${{ steps.fmt.outputs.format }}
@@ -131,6 +160,7 @@ jobs:
       # 1/day guard and rotation survive between ephemeral runners.
       - name: commit state
         if: always() && env.SKIP != '1'
+        continue-on-error: true
         run: |
           set -eu
           git config user.name "sketchman-bot"
@@ -138,10 +168,20 @@ jobs:
           if git status --porcelain -- state.json | grep -q .; then
             git add state.json
             git commit -m "ci: record state $(date -u +%Y-%m-%d)" || true
-            git push origin HEAD
+            # Use force-with-lease to avoid overwriting concurrent updates
+            git push origin HEAD --force-with-lease || echo "Push failed, state saved in cache"
           else
             echo "state.json unchanged"
           fi
+
+      # Upload logs as artifacts for debugging
+      - name: upload logs artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-logs-${{ github.run_number }}
+          path: /tmp/*.log
+          retention-days: 7
 
       - name: notify on failure
         if: failure()
@@ -149,6 +189,8 @@ jobs:
           ALERT_SMTP_USER: ${{ secrets.ALERT_SMTP_USER }}
           ALERT_SMTP_APP_PASSWORD: ${{ secrets.ALERT_SMTP_APP_PASSWORD }}
           ALERT_SMTP_TO: ${{ secrets.ALERT_SMTP_TO }}
+          ALERT_DISCORD_WEBHOOK: ${{ secrets.ALERT_DISCORD_WEBHOOK }}
+          ALERT_SLACK_WEBHOOK: ${{ secrets.ALERT_SLACK_WEBHOOK }}
         run: |
           set +e
           REASON="see the run log"
@@ -156,11 +198,33 @@ jobs:
             REASON="dead YouTube refresh token (invalid_grant) — run python reauth.py and gh secret set YOUTUBE_REFRESH_TOKEN"
           elif grep -q "\[fail\]" /tmp/*.log 2>/dev/null; then
             REASON="pipeline error — grep '[fail]' in step logs"
+          elif grep -q "quotaExceeded\|dailyLimitExceeded" /tmp/*.log 2>/dev/null; then
+            REASON="YouTube API quota exceeded — wait for daily reset or request quota increase"
           fi
           python alerts.py \
             "Sketchman FAILED: $REASON" \
             "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 Reason: $REASON
+
+State: $(python state.py summary 2>/dev/null || echo 'unavailable')"
+
+      # Success notification (optional, can be enabled by setting NOTIFY_ON_SUCCESS=true)
+      - name: notify on success
+        if: success() && env.NOTIFY_ON_SUCCESS == 'true'
+        env:
+          ALERT_SMTP_USER: ${{ secrets.ALERT_SMTP_USER }}
+          ALERT_SMTP_APP_PASSWORD: ${{ secrets.ALERT_SMTP_APP_PASSWORD }}
+          ALERT_SMTP_TO: ${{ secrets.ALERT_SMTP_TO }}
+          ALERT_DISCORD_WEBHOOK: ${{ secrets.ALERT_DISCORD_WEBHOOK }}
+          ALERT_SLACK_WEBHOOK: ${{ secrets.ALERT_SLACK_WEBHOOK }}
+        run: |
+          python alerts.py \
+            "Sketchman SUCCESS" \
+            "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+Format: ${{ steps.fmt.outputs.format }}
+Video: $(ls -t ${{ steps.fmt.outputs.format }}-*.mp4 | head -1)
+URL: $(python -c "import state; print(state.load().get('links', {}).get('$(date -u +%Y-%m-%d)', {}).get('${{ steps.fmt.outputs.format }}', 'unknown'))")
 
 State: $(python state.py summary 2>/dev/null || echo 'unavailable')"

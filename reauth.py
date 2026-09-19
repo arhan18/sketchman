@@ -23,6 +23,7 @@ import argparse
 import json
 import os
 import sys
+from datetime import datetime
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.upload",
           "https://www.googleapis.com/auth/youtube.readonly"]
@@ -38,8 +39,20 @@ CLIENT_TEMPLATE = {
     }
 }
 
+# Structured logging
+LOG_LEVELS = {"debug": 0, "info": 1, "warn": 2, "error": 3, "fail": 4}
+CURRENT_LOG_LEVEL = LOG_LEVELS.get(os.getenv("LOG_LEVEL", "info").lower(), 1)
 
-def main():
+
+def _log(level: str, msg: str, **kwargs) -> None:
+    """Structured logging with optional key-value pairs."""
+    if LOG_LEVELS.get(level, 1) >= CURRENT_LOG_LEVEL:
+        kv = " ".join(f"{k}={v}" for k, v in kwargs.items())
+        ts = datetime.utcnow().isoformat() + "Z"
+        print(f"[{ts}] [{level.upper()}] {msg} {kv}".strip(), flush=True)
+
+
+def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--client-id", default=os.getenv("YOUTUBE_CLIENT_ID"))
     ap.add_argument("--client-secret", default=os.getenv("YOUTUBE_CLIENT_SECRET"))
@@ -49,8 +62,8 @@ def main():
     a = ap.parse_args()
 
     if not a.client_id or not a.client_secret:
-        print("Need --client-id and --client-secret (or set "
-              "YOUTUBE_CLIENT_ID / YOUTUBE_CLIENT_SECRET env vars).")
+        _log("fail", "Need --client-id and --client-secret (or set "
+                     "YOUTUBE_CLIENT_ID / YOUTUBE_CLIENT_SECRET env vars).")
         sys.exit(2)
 
     from google_auth_oauthlib.flow import InstalledAppFlow
@@ -59,9 +72,9 @@ def main():
     client_config["installed"]["client_secret"] = a.client_secret
 
     flow = InstalledAppFlow.from_client_config(client_config, SCOPES)
-    print("Opening browser for Google consent...")
-    print("APPROVE the consent screen in your browser — this is the only "
-          "manual step.", flush=True)
+    _log("info", "Opening browser for Google consent...")
+    _log("info", "APPROVE the consent screen in your browser — this is the only "
+                 "manual step.")
     creds = flow.run_local_server(
         port=a.port, prompt="consent",
         authorization_prompt_message="Approve the Sketchman upload access in "
@@ -76,16 +89,18 @@ def main():
     yt = build("youtube", "v3", credentials=creds, cache_discovery=False)
     res = yt.channels().list(part="snippet,statistics", mine=True).execute()
     if not (res.get("items") or []):
-        print("FAIL: token minted but no channel is visible. Log in to the "
-              "Google account that owns/creates the YouTube channel.")
+        _log("fail", "token minted but no channel is visible. Log in to the "
+                     "Google account that owns/creates the YouTube channel.")
         sys.exit(1)
     ch = res["items"][0]
-    print(f"OK: token verified against channel '{ch['snippet']['title']}' "
-          f"(subs={ch['statistics'].get('subscriberCount', '?')})")
+    _log("info", "token verified against channel",
+         title=ch['snippet']['title'],
+         channel_id=ch['id'],
+         subscribers=ch['statistics'].get('subscriberCount', '?'))
 
     if not creds.refresh_token:
-        print("FAIL: no refresh token issued (Google only issues one on first "
-              "consent, or the app is in Testing mode).")
+        _log("fail", "no refresh token issued (Google only issues one on first "
+                     "consent, or the app is in Testing mode).")
         sys.exit(1)
 
     # Write 0600, print commands, never the secret itself.
@@ -94,7 +109,7 @@ def main():
         json.dump({"refresh_token": creds.refresh_token}, f)
     os.chmod(a.out, 0o600)
 
-    print(f"\nNew refresh token saved to {a.out} (chmod 600).")
+    _log("info", "New refresh token saved", path=a.out, permissions="0600")
     print("Safely store it as a GitHub secret (run these yourself):")
     print(f'  gh secret set YOUTUBE_REFRESH_TOKEN < {os.path.abspath(a.out)}')
     print(f"  rm {os.path.abspath(a.out)}")
