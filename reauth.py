@@ -104,9 +104,12 @@ def main() -> None:
         sys.exit(1)
 
     # Write 0600, print commands, never the secret itself.
+    # RAW token (not JSON): upload.py reads YOUTUBE_REFRESH_TOKEN verbatim,
+    # and `gh secret set ... < file` stores the file bytes as-is — storing
+    # a JSON object here would make every CI refresh fail with invalid_grant.
     os.makedirs(os.path.dirname(os.path.abspath(a.out)) or ".", exist_ok=True)
     with open(a.out, "w") as f:
-        json.dump({"refresh_token": creds.refresh_token}, f)
+        f.write(creds.refresh_token.strip() + "\n")
     os.chmod(a.out, 0o600)
 
     _log("info", "New refresh token saved", path=a.out, permissions="0600")
