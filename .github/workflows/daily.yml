@@ -115,14 +115,14 @@ jobs:
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
         run: |
           set -o pipefail
-          python -c "
-import state
-if not state.can_upload():
-    remaining = state.quota_remaining()
-    print(f'[warn] Insufficient quota: {remaining} units remaining, need ~1600')
-    exit(1)
-print(f'[ok] Quota check passed: {state.quota_remaining()} units remaining')
-" 2>&1 | tee /tmp/quota.log
+          python3 - <<'PY' 2>&1 | tee /tmp/quota.log
+          import state
+          if not state.can_upload():
+              remaining = state.quota_remaining()
+              print(f'[warn] Insufficient quota: {remaining} units remaining, need ~1600')
+              exit(1)
+          print(f'[ok] Quota check passed: {state.quota_remaining()} units remaining')
+          PY
 
       # Credential check FIRST (1 quota unit): fail fast + alert before any
       # render work if the refresh token is dead.
@@ -211,9 +211,9 @@ print(f'[ok] Quota check passed: {state.quota_remaining()} units remaining')
             "Sketchman FAILED: $REASON" \
             "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-Reason: $REASON
+          Reason: $REASON
 
-State: $(python state.py summary 2>/dev/null || echo 'unavailable')"
+          State: $(python state.py summary 2>/dev/null || echo 'unavailable')"
 
       # Success notification (optional, can be enabled by setting NOTIFY_ON_SUCCESS=true)
       - name: notify on success
@@ -229,8 +229,8 @@ State: $(python state.py summary 2>/dev/null || echo 'unavailable')"
             "Sketchman SUCCESS" \
             "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-Format: ${{ steps.fmt.outputs.format }}
-Video: $(python -c "import json,os; m=json.load(open('latest.json')) if os.path.exists('latest.json') else {}; print(m.get('video','unknown'))" 2>/dev/null || echo 'unknown')
-URL: $(python -c "import state; print(state.load().get('links', {}).get('$(date -u +%Y-%m-%d)', {}).get('${{ steps.fmt.outputs.format }}', 'unknown'))" 2>/dev/null || echo 'unknown')
+          Format: ${{ steps.fmt.outputs.format }}
+          Video: $(python -c "import json,os; m=json.load(open('latest.json')) if os.path.exists('latest.json') else {}; print(m.get('video','unknown'))" 2>/dev/null || echo 'unknown')
+          URL: $(python -c "import state; print(state.load().get('links', {}).get('$(date -u +%Y-%m-%d)', {}).get('${{ steps.fmt.outputs.format }}', 'unknown'))" 2>/dev/null || echo 'unknown')
 
-State: $(python state.py summary 2>/dev/null || echo 'unavailable')"
+          State: $(python state.py summary 2>/dev/null || echo 'unavailable')"
