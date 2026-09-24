@@ -16,6 +16,10 @@ on:
         description: "ignore the 1-upload-per-day guard"
         type: boolean
         default: false
+      verify_only:
+        description: "run quota + credential checks only (no render/upload)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write   # needed to commit state.json back after each run
@@ -133,13 +137,13 @@ print(f'[ok] Quota check passed: {state.quota_remaining()} units remaining')
           python upload.py --verify 2>&1 | tee /tmp/verify.log
 
       - name: render
-        if: ${{ env.SKIP != '1' }}
+        if: ${{ env.SKIP != '1' && inputs.verify_only != true }}
         run: |
           set -o pipefail
           python generate.py --format ${{ steps.fmt.outputs.format }} 2>&1 | tee /tmp/render.log
 
       - name: upload
-        if: ${{ env.SKIP != '1' }}
+        if: ${{ env.SKIP != '1' && inputs.verify_only != true }}
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
