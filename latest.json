@@ -1,11 +1,11 @@
 {
-  "duration_seconds": 43.99,
-  "file_size": 1635110,
+  "duration_seconds": 35.4,
+  "file_size": 1321007,
   "format": "short",
-  "meta": "short-arjun-24-hour-rule.json",
-  "rendered_at": "2026-09-25T11:37:02.922127Z",
-  "script": "arjun/24-hour-rule",
-  "series": "arjun",
-  "thumbnail": "short-arjun-24-hour-rule-thumb.png",
-  "video": "short-arjun-24-hour-rule.mp4"
+  "meta": "short-mira-emergency-fund-myth.json",
+  "rendered_at": "2026-09-25T14:24:51.665911Z",
+  "script": "mira/emergency-fund-myth",
+  "series": "mira",
+  "thumbnail": "short-mira-emergency-fund-myth-thumb.png",
+  "video": "short-mira-emergency-fund-myth.mp4"
 }
