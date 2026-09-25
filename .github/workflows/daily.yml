@@ -94,10 +94,6 @@ jobs:
       # this fails we want the run to fail loudly rather than silently publish
       # with the old Kokoro voice.
       - name: voice setup (OpenVoice)
-        env:
-          VOICE_REF_ARJUN: ${{ secrets.VOICE_REF_ARJUN }}
-          VOICE_REF_MIRA: ${{ secrets.VOICE_REF_MIRA }}
-          VOICE_REF_KABIR: ${{ secrets.VOICE_REF_KABIR }}
         run: |
           chmod +x ci/setup-voice.sh
           ./ci/setup-voice.sh

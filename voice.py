@@ -34,7 +34,9 @@ EDGE_TIMEOUT = int(os.getenv("EDGE_TIMEOUT", "45"))
 # One TTS identity per series id (see series.py). Kokoro runs locally and
 # costs nothing; Edge is the fallback and carries the Indian-English accent,
 # so a fallback episode still sounds like the same country. Only two en-IN
-# Edge voices exist, so arjun/kabir share Prabhat and separate by rate+pitch.
+# Only two en-IN Edge voices exist, so arjun/kabir share Prabhat and separate
+# by rate+pitch. (The house engine is OpenVoice/en-us, so these only matter if
+# it is ever disabled.)
 DEFAULT_PROFILE = "default"
 VOICE_PROFILES = {
     "default": {
@@ -43,15 +45,15 @@ VOICE_PROFILES = {
     },
     "arjun": {
         "kokoro": "am_adam", "speed": 0.93,
-        "edge": "en-IN-PrabhatNeural", "edge_rate": "-6%", "edge_pitch": "+0Hz",
+        "edge": "en-US-ChristopherNeural", "edge_rate": "-6%", "edge_pitch": "+0Hz",
     },
     "mira": {
         "kokoro": "af_bella", "speed": 0.97,
-        "edge": "en-IN-NeerjaNeural", "edge_rate": "-4%", "edge_pitch": "+2Hz",
+        "edge": "en-US-AriaNeural", "edge_rate": "-4%", "edge_pitch": "+2Hz",
     },
     "kabir": {
         "kokoro": "am_michael", "speed": 0.90,
-        "edge": "en-IN-PrabhatNeural", "edge_rate": "-10%", "edge_pitch": "-6Hz",
+        "edge": "en-US-GuyNeural", "edge_rate": "-10%", "edge_pitch": "-6Hz",
     },
 }
 
@@ -65,20 +67,17 @@ def _profile(series_id: Optional[str]) -> dict:
 # --- OpenVoice V2 house voice ---------------------------------------------
 # Measured against the reference channels (Jack Explains Money 137 wpm /
 # 102 Hz median pitch, Hidden Yield 167 wpm, PsychToons 184 wpm), the target
-# envelope is ~150-160 wpm from a low-mid male voice. OpenVoice's en-india
-# base speaker is the house timbre; if the owner drops a recording in
-# voices/<series>.wav it is used as the tone-colour target instead, which is
-# how the channel gets a voice that is recognisably theirs without cloning
-# anyone else.
+# envelope is ~150-160 wpm from a low-mid male voice. The house timbre is
+# OpenVoice's en-us base speaker (owner picked it after listening to all five
+# English bases), and deliberately NOT en-india: the channel is written for an
+# Indian audience but is narrated in a neutral American accent.
 OPENVOICE_DIR = os.getenv(
     "OPENVOICE_DIR", os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                   "voice-openvoice"))
-VOICES_DIR = os.getenv(
-    "VOICES_DIR", os.path.join(os.path.dirname(os.path.abspath(__file__)), "voices"))
-# MeloTTS speaks EN_INDIA at ~210 wpm out of the box, which is what makes cheap
-# TTS sound rushed. These factors were tuned by measuring output duration
-# against the 150-160 wpm envelope the reference channels use.
-HOUSE_SPEEDS = {"arjun": 0.72, "mira": 0.80, "kabir": 0.68}
+HOUSE_BASE = os.getenv("HOUSE_VOICE_BASE", "en-us")
+# MeloTTS defaults to ~210 wpm; these were measured against output
+# duration to land the en-us house voice on ~155-160 wpm.
+HOUSE_SPEEDS = {"arjun": 0.68, "mira": 0.76, "kabir": 0.64}
 _ov = {}
 
 
@@ -114,7 +113,7 @@ def _openvoice_load():
     )
     spk2id = _ov["tts"].hps.data.spk2id
     try:
-        _ov["spk"] = spk2id["EN_INDIA"]
+        _ov["spk"] = spk2id["EN-US"]
     except (KeyError, TypeError):
         _ov["spk"] = list(spk2id.values())[0]
     _ov["conv"] = ToneColorConverter(
@@ -124,28 +123,10 @@ def _openvoice_load():
                                        "converter", "checkpoint.pth"))
     _ov["base_se"] = torch.load(
         os.path.join(OPENVOICE_DIR, "checkpoints_v2", "base_speakers", "ses",
-                     "en-india.pth"), map_location=device)
+                     f"{HOUSE_BASE}.pth"), map_location=device)
     _ov["loaded"] = True
-    _log("info", "openvoice loaded", device=device, base="en-india")
+    _log("info", "openvoice loaded", device=device, base=HOUSE_BASE)
     return _ov
-
-
-def _openvoice_target_se(series_id: str):
-    """Owner recording if present (tone-colour target), else the house base."""
-    ov = _ov
-    ref = os.path.join(VOICES_DIR, f"{series_id or 'house'}.wav")
-    if not os.path.isfile(ref):
-        for ext in (".mp3", ".m4a", ".ogg"):
-            alt = os.path.join(VOICES_DIR, f"{series_id or 'house'}{ext}")
-            if os.path.isfile(alt):
-                ref = alt
-                break
-    if os.path.isfile(ref):
-        from openvoice import se_extractor
-        se, _ = se_extractor.get_se(ref, ov["conv"], vad=False)
-        _log("info", "openvoice target voice", reference=os.path.basename(ref))
-        return se
-    return ov["base_se"]
 
 
 def _openvoice_save(text: str, path: str, series_id: Optional[str]) -> bool:
@@ -161,7 +142,7 @@ def _openvoice_save(text: str, path: str, series_id: Optional[str]) -> bool:
     ov["conv"].convert(
         audio_src_path=raw,
         src_se=ov["base_se"],
-        tgt_se=_openvoice_target_se(series_id),
+        tgt_se=ov["base_se"],
         output_path=converted,
     )
     subprocess.run([binpath.FFMPEG, "-y", "-v", "error", "-i", converted,

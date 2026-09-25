@@ -7,10 +7,11 @@
 #     from https://huggingface.co/myshell-ai/MeloTTS-English
 #   voice-openvoice/checkpoints_v2/converter/{config.json,checkpoint.pth}
 #     from https://huggingface.co/myshell-ai/OpenVoiceV2
-#   voice-openvoice/checkpoints_v2/base_speakers/ses/en-india.pth
+#   voice-openvoice/checkpoints_v2/base_speakers/ses/en-us.pth
 #     from https://huggingface.co/myshell-ai/OpenVoiceV2
-# Owner reference recordings go in voices/<series>.wav and are used as the
-# tone-colour target instead of the en-india base speaker.
+# The house timbre is the en-us base speaker; en-india is deliberately unused
+# (the channel is narrated in a neutral American accent). Override with
+# HOUSE_VOICE_BASE=<name> if that ever changes.
 torch>=2.2
 torchaudio
 transformers>=4.40,<5

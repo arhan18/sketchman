@@ -29,7 +29,9 @@ def test_voice_profiles():
     for sid in series_mod.all_series():
         prof = voice._profile(sid)
         assert prof["kokoro"] and prof["edge"] and prof["edge_rate"]
-    assert voice._profile("mira")["edge"] == "en-IN-NeerjaNeural"
+    assert voice._profile("mira")["edge"] == "en-US-AriaNeural"
+    assert all("en-IN" not in v["edge"] for v in voice.VOICE_PROFILES.values())
+    assert voice.HOUSE_BASE == "en-us"
     assert voice._profile(None) == voice._profile("default")
 
 

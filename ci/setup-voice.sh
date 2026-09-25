@@ -68,18 +68,8 @@ fetch "$HF_MELO/config.json"                "$MELO/config.json"
 fetch "$HF_MELO/checkpoint.pth"             "$MELO/checkpoint.pth"
 fetch "$HF_OV2/converter/config.json"       "$OV2/converter/config.json"
 fetch "$HF_OV2/converter/checkpoint.pth"    "$OV2/converter/checkpoint.pth"
-fetch "$HF_OV2/base_speakers/ses/en-india.pth" "$OV2/base_speakers/ses/en-india.pth"
-
-echo "==> owner reference voices (optional, from base64 secrets)"
-mkdir -p "$ROOT/voices"
-for series in arjun mira kabir; do
-  var="VOICE_REF_$(echo "$series" | tr '[:lower:]' '[:upper:]')"
-  value="${!var:-}"
-  if [ -n "$value" ]; then
-    printf '%s' "$value" | base64 --decode > "$ROOT/voices/$series.wav"
-    echo "    $series.wav installed from secret"
-  fi
-done
+# House timbre is en-us (owner picked it); en-india is deliberately not used.
+fetch "$HF_OV2/base_speakers/ses/en-us.pth" "$OV2/base_speakers/ses/en-us.pth"
 
 echo "==> smoke test"
 python - <<'PY'
