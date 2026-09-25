@@ -1,0 +1,38 @@
+# OpenVoice V2 house voice (MIT, free for commercial use). Heavy: ~1.5 GB of
+# wheels and ~320 MB of checkpoints. Install only where the house voice runs.
+#   pip install -r requirements-voice.txt
+#   python -m playwright install chromium   # (renderer, not voice)
+# Checkpoints (not in git):
+#   voice-openvoice/melo-models/EN/{config.json,checkpoint.pth}
+#     from https://huggingface.co/myshell-ai/MeloTTS-English
+#   voice-openvoice/checkpoints_v2/converter/{config.json,checkpoint.pth}
+#     from https://huggingface.co/myshell-ai/OpenVoiceV2
+#   voice-openvoice/checkpoints_v2/base_speakers/ses/en-india.pth
+#     from https://huggingface.co/myshell-ai/OpenVoiceV2
+# Owner reference recordings go in voices/<series>.wav and are used as the
+# tone-colour target instead of the en-india base speaker.
+torch>=2.2
+torchaudio
+transformers>=4.40,<5
+librosa
+pydub
+num2words==0.5.12
+cached_path
+anyascii
+g2p_en
+inflect
+unidecode
+pypinyin
+cn2an
+jieba
+pykakasi
+fugashi
+jamo
+g2pkk
+eng_to_ipa
+gruut[de,es,fr]
+transformers
+git+https://github.com/myshell-ai/MeloTTS.git
+git+https://github.com/myshell-ai/OpenVoice.git
+whisper_timestamped
+wavmark

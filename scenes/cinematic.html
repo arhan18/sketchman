@@ -108,11 +108,15 @@ body.vertical .caption { bottom: 96px; }
   animation: glowIn 2.8s ease-out both;
 }
 .lit .thing { position: relative; width: 320px; height: 320px; animation: capIn 1s ease-out both; }
-.lit .side { position: absolute; left: 10%; bottom: 22%; max-width: 320px; animation: panL 1.1s ease-out .3s both; }
+.lit .who-kabir { position: absolute; left: 7%; bottom: 11%; animation: panL 1.2s ease-out .2s both;
+  filter: drop-shadow(0 0 34px rgba(229, 178, 74, .55)); }
+.lit .side { position: absolute; right: 9%; bottom: 30%; max-width: 400px;
+  text-align: right; animation: panR 1.1s ease-out .3s both; }
 .lit .side .k { font: 700 11px/1 var(--font-body); letter-spacing: .26em;
   text-transform: uppercase; color: var(--accent); }
 .lit .side .p { margin: 12px 0 0; font: 400 30px/1.2 var(--font-display); color: #f2ede4; }
 .lit .side .s { margin: 10px 0 0; font: 400 17px/1.55 var(--font-body); color: rgba(242, 237, 228, .55); }
+@keyframes panR { from { transform: translateX(26px); opacity: 0; } to { transform: none; opacity: 1; } }
 
 /* ---------- chart: light falling on a curve ---------- */
 .rise { position: absolute; left: 10%; right: 10%; top: 22%; }
@@ -182,10 +186,21 @@ window.SKETCHMAN_STYLE = (function () {
   function slug(series) {
     return '<div class="slug"><b>' + esc(series.host) + '</b><i></i>' + esc(series.show) + '</div>';
   }
-  function person(h, w, tone) {
+  function person(h, w, tone, opts) {
+    opts = opts || {};
+    var rim = opts.rim
+      ? '<path d="M10 168c0-50 18-98 40-98s40 48 40 98z" fill="none" stroke="#e5b24a" stroke-width="4" opacity=".95"/>'
+      : '';
+    var prop = opts.prop === 'case'
+      ? '<rect x="98" y="120" width="30" height="44" rx="4" fill="none" stroke="#e5b24a" stroke-width="3"/>'
+      : opts.prop === 'cup'
+        ? '<path d="M108 132h22l-3 22h-16z" fill="none" stroke="#e5b24a" stroke-width="3"/>'
+        : '';
     return '<svg viewBox="0 0 100 170" width="' + w + '" height="' + h + '">'
       + '<circle cx="50" cy="38" r="21" fill="' + tone + '"/>'
-      + '<path d="M12 168c0-38 17-62 38-62s38 24 38 62z" fill="' + tone + '"/>'
+      + '<path d="M44 56h12v14H44z" fill="' + tone + '"/>'
+      + '<path d="M10 168c0-50 18-98 40-98s40 48 40 98z" fill="' + tone + '"/>'
+      + rim + prop
       + '</svg>';
   }
   function prop(kind) {
@@ -200,7 +215,10 @@ window.SKETCHMAN_STYLE = (function () {
             + '<path d="M74 208l92-168" stroke="#e5b24a" stroke-width="2" opacity=".35"/>'
             + '<circle cx="150" cy="128" r="6" fill="#e5b24a"/>',
       clock: '<circle cx="120" cy="120" r="80" fill="none" stroke="#e5b24a" stroke-width="3"/>'
-            + '<path d="M120 120V72M120 120l32 20" stroke="#f2ede4" stroke-width="3" stroke-linecap="round" opacity=".7"/>'
+            + '<path d="M120 120V72M120 120l32 20" stroke="#f2ede4" stroke-width="3" stroke-linecap="round" opacity=".7"/>',
+      case: '<rect x="46" y="92" width="148" height="92" rx="8" fill="none" stroke="#e5b24a" stroke-width="3"/>'
+            + '<path d="M104 92V72a16 16 0 0 1 16-16 16 16 0 0 1 16 16v20" fill="none" stroke="#e5b24a" stroke-width="3"/>'
+            + '<path d="M46 132h148" stroke="#e5b24a" stroke-width="2" opacity=".5"/>'
     };
     return '<svg viewBox="0 0 240 240" width="100%" height="100%">'
       + (s[kind] || s.jar) + '</svg>';
@@ -230,6 +248,8 @@ window.SKETCHMAN_STYLE = (function () {
       var p = c.props || {}, s = window.PAYLOAD.series;
       return slug(s) + '<div class="lit"><div class="stage-light"></div>'
         + '<div class="thing">' + prop(p.shape) + '</div>'
+        + '<div class="who-kabir">' + person(210, 146, '#2a4055',
+            { rim: true, prop: p.prop || 'case' }) + '</div>'
         + '<div class="side"><div class="k">' + esc(p.kicker || 'the object') + '</div>'
         + '<div class="p">' + esc(p.label) + '</div>'
         + '<div class="s">' + esc(p.sub || '') + '</div></div></div>';

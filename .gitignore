@@ -21,3 +21,6 @@ tools/node/package-lock.json
 
 # macOS
 .DS_Store
+# house-voice models (huge) and the owner's reference recordings (private)
+voice-openvoice/
+voices/

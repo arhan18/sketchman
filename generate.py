@@ -75,6 +75,10 @@ def build(fmt: str, script_key: str = None) -> str:
          words=script_mod.word_count(script))
 
     clips = script_mod.clips(script)
+    repeats = script_mod.check_variety(script)
+    if repeats:
+        for line in repeats:
+            _log("warn", "repeated visual", script=script["_key"], detail=line)
     parts = narrate(clips, series.id)
     size = renderer.SHORT_SIZE if fmt == "short" else renderer.LONG_SIZE
 

@@ -29,6 +29,15 @@ body {
   visibility: hidden;
 }
 .shot.active { opacity: 1; visibility: visible; }
+/* One camera for every style: each sentence of a shot starts slightly further
+   in, so a held visual keeps drifting instead of restarting on the same frame. */
+.cam-layer {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(calc(var(--v, 0) * -0.5%), 0, 0)
+             scale(calc(1 + var(--v, 0) * 0.022));
+  transform-origin: 50% 46%;
+}
 .caption {
   position: absolute;
   left: 0;

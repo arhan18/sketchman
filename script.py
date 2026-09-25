@@ -99,17 +99,43 @@ def pick(fmt: str, topic_override: Optional[str] = None) -> Dict[str, Any]:
 
 
 def clips(script: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Expand shots into sentence-level clips (durations filled in later)."""
+    """Expand shots into sentence-level clips (durations filled in later).
+
+    Each clip carries `variant` (which sentence of its shot it is) and
+    `shot_index`, so the renderer can keep moving the camera instead of
+    holding one frozen frame while the caption changes.
+    """
     out: List[Dict[str, Any]] = []
-    for shot in script["shots"]:
-        for sentence in split_sentences(shot["narr"]):
+    for shot_index, shot in enumerate(script["shots"]):
+        for variant, sentence in enumerate(split_sentences(shot["narr"])):
             out.append({
                 "scene": shot["scene"],
                 "props": shot.get("props", {}),
                 "caption": sentence,
                 "narr": sentence,
+                "variant": variant,
+                "shot_index": shot_index,
+                "character": shot.get("character"),
             })
     return out
+
+
+def check_variety(script: Dict[str, Any]) -> List[str]:
+    """Complain about repeated visuals so episodes never look like a loop.
+
+    A shot may hold for several sentences (that is fine), but two shots with
+    the same scene AND the same props anywhere in one episode is a repeat.
+    """
+    seen = {}
+    problems = []
+    for i, shot in enumerate(script["shots"]):
+        key = (shot["scene"], json.dumps(shot.get("props", {}), sort_keys=True))
+        if key in seen:
+            problems.append(
+                f"shots {seen[key]} and {i} render the identical visual "
+                f"({shot['scene']}); change the props or the scene")
+        seen.setdefault(key, i)
+    return problems
 
 
 def word_count(script: Dict[str, Any]) -> int:

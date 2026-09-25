@@ -61,6 +61,121 @@ def _profile(series_id: Optional[str]) -> dict:
     return VOICE_PROFILES.get(series_id or DEFAULT_PROFILE,
                               VOICE_PROFILES[DEFAULT_PROFILE])
 
+
+# --- OpenVoice V2 house voice ---------------------------------------------
+# Measured against the reference channels (Jack Explains Money 137 wpm /
+# 102 Hz median pitch, Hidden Yield 167 wpm, PsychToons 184 wpm), the target
+# envelope is ~150-160 wpm from a low-mid male voice. OpenVoice's en-india
+# base speaker is the house timbre; if the owner drops a recording in
+# voices/<series>.wav it is used as the tone-colour target instead, which is
+# how the channel gets a voice that is recognisably theirs without cloning
+# anyone else.
+OPENVOICE_DIR = os.getenv(
+    "OPENVOICE_DIR", os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                  "voice-openvoice"))
+VOICES_DIR = os.getenv(
+    "VOICES_DIR", os.path.join(os.path.dirname(os.path.abspath(__file__)), "voices"))
+# MeloTTS speaks EN_INDIA at ~210 wpm out of the box, which is what makes cheap
+# TTS sound rushed. These factors were tuned by measuring output duration
+# against the 150-160 wpm envelope the reference channels use.
+HOUSE_SPEEDS = {"arjun": 0.72, "mira": 0.80, "kabir": 0.68}
+_ov = {}
+
+
+def _openvoice_ready() -> bool:
+    return (os.path.isdir(os.path.join(OPENVOICE_DIR, "melo-models", "EN"))
+            and os.path.isfile(os.path.join(OPENVOICE_DIR, "checkpoints_v2",
+                                            "converter", "checkpoint.pth")))
+
+
+def _openvoice_load():
+    """Load MeloTTS + the OpenVoice converter once per process."""
+    if _ov.get("loaded"):
+        return _ov
+    import torch
+    # OpenVoice checkpoints contain plain python objects; torch>=2.6 defaults
+    # to weights_only=True and refuses them.
+    if not getattr(torch.load, "_ov_patched", False):
+        _orig = torch.load
+        def _load(*a, **k):
+            k.setdefault("weights_only", False)
+            return _orig(*a, **k)
+        _load._ov_patched = True
+        torch.load = _load
+    from melo.api import TTS
+    from openvoice.api import ToneColorConverter
+    device = "cpu"
+    _ov["torch"] = torch
+    _ov["device"] = device
+    _ov["tts"] = TTS(
+        language="EN", device=device, use_hf=False,
+        ckpt_path=os.path.join(OPENVOICE_DIR, "melo-models", "EN", "checkpoint.pth"),
+        config_path=os.path.join(OPENVOICE_DIR, "melo-models", "EN", "config.json"),
+    )
+    spk2id = _ov["tts"].hps.data.spk2id
+    try:
+        _ov["spk"] = spk2id["EN_INDIA"]
+    except (KeyError, TypeError):
+        _ov["spk"] = list(spk2id.values())[0]
+    _ov["conv"] = ToneColorConverter(
+        os.path.join(OPENVOICE_DIR, "checkpoints_v2", "converter", "config.json"),
+        device=device)
+    _ov["conv"].load_ckpt(os.path.join(OPENVOICE_DIR, "checkpoints_v2",
+                                       "converter", "checkpoint.pth"))
+    _ov["base_se"] = torch.load(
+        os.path.join(OPENVOICE_DIR, "checkpoints_v2", "base_speakers", "ses",
+                     "en-india.pth"), map_location=device)
+    _ov["loaded"] = True
+    _log("info", "openvoice loaded", device=device, base="en-india")
+    return _ov
+
+
+def _openvoice_target_se(series_id: str):
+    """Owner recording if present (tone-colour target), else the house base."""
+    ov = _ov
+    ref = os.path.join(VOICES_DIR, f"{series_id or 'house'}.wav")
+    if not os.path.isfile(ref):
+        for ext in (".mp3", ".m4a", ".ogg"):
+            alt = os.path.join(VOICES_DIR, f"{series_id or 'house'}{ext}")
+            if os.path.isfile(alt):
+                ref = alt
+                break
+    if os.path.isfile(ref):
+        from openvoice import se_extractor
+        se, _ = se_extractor.get_se(ref, ov["conv"], vad=False)
+        _log("info", "openvoice target voice", reference=os.path.basename(ref))
+        return se
+    return ov["base_se"]
+
+
+def _openvoice_save(text: str, path: str, series_id: Optional[str]) -> bool:
+    """Synthesise with the house voice. Returns False if the engine is absent."""
+    if not _openvoice_ready():
+        return False
+    import binpath
+    ov = _openvoice_load()
+    raw = path + ".melo.wav"
+    converted = path + ".converted.wav"
+    speed = HOUSE_SPEEDS.get(series_id or "", 1.0)
+    ov["tts"].tts_to_file(pace(text), ov["spk"], raw, speed=speed)
+    ov["conv"].convert(
+        audio_src_path=raw,
+        src_se=ov["base_se"],
+        tgt_se=_openvoice_target_se(series_id),
+        output_path=converted,
+    )
+    subprocess.run([binpath.FFMPEG, "-y", "-v", "error", "-i", converted,
+                    "-codec:a", "libmp3lame", "-q:a", "3", path], check=True)
+    for tmp in (raw, converted):
+        if os.path.isfile(tmp):
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+    _log("info", "TTS generated with OpenVoice", series=series_id or "house",
+         speed=speed, output=path)
+    return True
+
 _kokoro = None
 _kokoro_probe_ok = None   # None=unknown, True/False cached once per process
 
@@ -257,8 +372,20 @@ def tts_sync(text: str, path: str, series_id: Optional[str] = None) -> None:
     import binpath
     prof = _profile(series_id)
     engine_override = os.getenv("TTS_ENGINE", "").strip().lower()
+    wanted = engine_override or os.getenv("VOICE_ENGINE", "openvoice")
 
-    # If forced to Edge, skip Kokoro entirely
+    # House voice first when OpenVoice is installed and enabled. It is the
+    # slowest engine (~25 min for a 10-min episode on CPU) so a failure falls
+    # straight through to Kokoro/Edge rather than stalling the run.
+    if wanted in ("openvoice", "auto") and _openvoice_ready():
+        try:
+            if _openvoice_save(text, path, series_id):
+                return
+        except Exception as e:
+            _log("warn", "openvoice failed, falling back", error=str(e))
+            if engine_override == "openvoice":
+                raise
+
     if engine_override == "edge":
         _log("info", "TTS_ENGINE=edge forced, skipping Kokoro", voice=prof["edge"])
         last: Optional[Exception] = None

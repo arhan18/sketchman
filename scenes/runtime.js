@@ -22,7 +22,10 @@
     el.dataset.start = clip.start;
     el.dataset.end = clip.end;
     el.dataset.index = i;
-    el.innerHTML = S.renderShot(clip, P.series, i);
+    el.style.setProperty('--v', clip.variant || 0);
+    el.style.setProperty('--i', i);
+    el.style.setProperty('--shot', clip.shot_index || 0);
+    el.innerHTML = '<div class="cam-layer">' + S.renderShot(clip, P.series, i) + '</div>';
     if (clip.caption) {
       const cap = document.createElement('div');
       cap.className = 'caption';
