@@ -1,0 +1,98 @@
+{
+  "series": "mira",
+  "format": "short",
+  "title": "You Need Six Months of Expenses Saved (Myth)",
+  "description": "Everyone says six months. Almost nobody has six months. Here is the number that actually matters - and why six months is advice for someone else.\n\nMira's Myth Busters on Fiscalore. New shorts Tuesdays and Fridays.",
+  "tags": "personal finance, emergency fund, myth busted, money tips, fiscalore, mira myth busters, saving money india",
+  "thumbnail": {
+    "headline": "6 MONTHS IS A LIE",
+    "scene": "numbers",
+    "props": {
+      "value": "1 month",
+      "label": "is enough to start",
+      "sub": "The number was never six. It was 'more than zero'."
+    }
+  },
+  "shots": [
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "the myth",
+        "place": "A phone screen, 11:58 PM",
+        "time": "everyone has said this sentence"
+      },
+      "narr": "You need six months of expenses saved. Everyone says it. Your uncle said it. So you assume six months is the finish line."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "6 months",
+        "label": "the number everyone repeats",
+        "sub": "Written for people with two incomes and a safety net."
+      },
+      "narr": "Six months is advice for someone with a safety net. No landlord calling. No income gap when a client pays late."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "jar",
+        "kicker": "the real target",
+        "label": "One honest month",
+        "sub": "Rent, food, transport, one surprise. That is the whole thing."
+      },
+      "narr": "Here is the number that actually matters. One month. Rent, food, transport, one surprise. That is the target."
+    },
+    {
+      "scene": "split",
+      "props": {
+        "left": {
+          "who": "waiting for six",
+          "title": "Starts saving at month seven",
+          "lines": [
+            "Zero saved for six months",
+            "One bad month and the debt starts"
+          ]
+        },
+        "right": {
+          "who": "starting at one",
+          "title": "Starts saving tomorrow",
+          "lines": [
+            "One month saved, then two",
+            "Bad months become boring, not fatal"
+          ]
+        }
+      },
+      "narr": "Wait for six and you save nothing for six months. Start at one month and the bad month is boring, not fatal."
+    },
+    {
+      "scene": "chart",
+      "props": {
+        "title": "Same salary, different start",
+        "unit": "months of runway",
+        "items": [
+          {
+            "label": "Month 1",
+            "value": 1
+          },
+          {
+            "label": "Month 6",
+            "value": 6
+          },
+          {
+            "label": "Month 18",
+            "value": 18
+          }
+        ],
+        "note": "Starting early beats starting perfect. The runway is the scoreboard."
+      },
+      "narr": "Starting early beats starting perfect. Your runway is the scoreboard."
+    },
+    {
+      "scene": "endcard",
+      "props": {
+        "line": "One idea, twice a week."
+      },
+      "narr": "Myth busted. Save one honest month first, then let time add the rest."
+    }
+  ]
+}

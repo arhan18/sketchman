@@ -8,6 +8,7 @@ catches native espeak-ng exit(1) that no Python except can see), so
 CI/local never breaks. Indian-money text normalized so the
 voice never reads symbols literally.
 """
+import asyncio
 import os
 import re
 import subprocess
@@ -24,12 +25,41 @@ ONNX_URL = ("https://github.com/thewh1teagle/kokoro-onnx/"
 VOICES_URL = ("https://github.com/thewh1teagle/kokoro-onnx/"
               "releases/download/model-files-v1.0/voices-v1.0.bin")
 
-KOKORO_VOICE = "am_adam"   # calm male narrator; alt: af_bella (female)
-KOKORO_SPEED = 0.93        # slightly slow = human, not rushed
 KOKORO_LANG = "en-us"
 
-EDGE_VOICE = "en-US-ChristopherNeural"
-EDGE_RATE = "-8%"
+# Edge's socket can stall indefinitely on a bad connection, so every call is
+# hard-capped; the retry loop below then does its job instead of hanging the run.
+EDGE_TIMEOUT = int(os.getenv("EDGE_TIMEOUT", "45"))
+
+# One TTS identity per series id (see series.py). Kokoro runs locally and
+# costs nothing; Edge is the fallback and carries the Indian-English accent,
+# so a fallback episode still sounds like the same country. Only two en-IN
+# Edge voices exist, so arjun/kabir share Prabhat and separate by rate+pitch.
+DEFAULT_PROFILE = "default"
+VOICE_PROFILES = {
+    "default": {
+        "kokoro": "am_adam", "speed": 0.93,
+        "edge": "en-US-ChristopherNeural", "edge_rate": "-8%", "edge_pitch": "+0Hz",
+    },
+    "arjun": {
+        "kokoro": "am_adam", "speed": 0.93,
+        "edge": "en-IN-PrabhatNeural", "edge_rate": "-6%", "edge_pitch": "+0Hz",
+    },
+    "mira": {
+        "kokoro": "af_bella", "speed": 0.97,
+        "edge": "en-IN-NeerjaNeural", "edge_rate": "-4%", "edge_pitch": "+2Hz",
+    },
+    "kabir": {
+        "kokoro": "am_michael", "speed": 0.90,
+        "edge": "en-IN-PrabhatNeural", "edge_rate": "-10%", "edge_pitch": "-6Hz",
+    },
+}
+
+
+def _profile(series_id: Optional[str]) -> dict:
+    """Voice settings for a series id, falling back to the default narrator."""
+    return VOICE_PROFILES.get(series_id or DEFAULT_PROFILE,
+                              VOICE_PROFILES[DEFAULT_PROFILE])
 
 _kokoro = None
 _kokoro_probe_ok = None   # None=unknown, True/False cached once per process
@@ -120,18 +150,18 @@ def _ensure_models() -> tuple[str, str]:
     return onnx_p, voices_p
 
 
-def _kokoro_wav(text: str, wav_path: str) -> bool:
+def _kokoro_wav(text: str, wav_path: str, prof: dict) -> bool:
     """Returns True on success. Raises on any failure -> caller falls back."""
     global _kokoro
     from kokoro_onnx import Kokoro
     if _kokoro is None:
         onnx_p, voices_p = _ensure_models()
         _kokoro = Kokoro(onnx_p, voices_p)
-        _log("info", "kokoro model loaded", voice=KOKORO_VOICE, speed=KOKORO_SPEED)
     samples, sample_rate = _kokoro.create(
-        pace(text), voice=KOKORO_VOICE, speed=KOKORO_SPEED, lang=KOKORO_LANG)
+        pace(text), voice=prof["kokoro"], speed=prof["speed"], lang=KOKORO_LANG)
     import soundfile as sf
     sf.write(wav_path, samples, sample_rate)
+    _log("info", "kokoro model loaded", voice=prof["kokoro"], speed=prof["speed"])
     return True
 
 
@@ -181,30 +211,61 @@ def _kokoro_probe() -> bool:
     return _kokoro_probe_ok
 
 
-async def _edge_save(text: str, path: str) -> None:
+async def _edge_save(text: str, path: str, prof: dict) -> None:
     import edge_tts
-    await edge_tts.Communicate(pace(text), EDGE_VOICE, rate=EDGE_RATE).save(path)
+    await asyncio.wait_for(
+        edge_tts.Communicate(
+            pace(text), prof["edge"],
+            rate=prof["edge_rate"], pitch=prof["edge_pitch"],
+        ).save(path),
+        timeout=EDGE_TIMEOUT,
+    )
 
 
-def tts_sync(text: str, path: str) -> None:
+def _try_kokoro(text: str, path: str, prof: dict) -> bool:
+    """Local Kokoro path. Returns True on success; never raises."""
+    import binpath
+    wav_tmp = path + ".kokoro.wav"
+    try:
+        _kokoro_wav(text, wav_tmp, prof)
+        subprocess.run([binpath.FFMPEG, "-y", "-v", "error", "-i", wav_tmp,
+                        "-codec:a", "libmp3lame", "-q:a", "3", path], check=True)
+        os.remove(wav_tmp)
+        _log("info", "TTS generated with Kokoro", voice=prof["kokoro"], output=path)
+        return True
+    except Exception as e:
+        if os.path.exists(wav_tmp):
+            try:
+                os.remove(wav_tmp)
+            except Exception:
+                pass
+        _log("warn", "kokoro failed", error=str(e))
+        return False
+
+
+def tts_sync(text: str, path: str, series_id: Optional[str] = None) -> None:
     """Free Kokoro first, Edge fallback. Output is always mp3 at `path`.
-    
+
+    series_id selects the host voice profile (see VOICE_PROFILES); omitted
+    means the default narrator.
+
     Set TTS_ENGINE=edge to force Edge TTS (skip Kokoro entirely).
     Set TTS_ENGINE=kokoro to force Kokoro (no fallback).
     Default: auto-detect with fallback.
     """
     import asyncio
+    import binpath
+    prof = _profile(series_id)
     engine_override = os.getenv("TTS_ENGINE", "").strip().lower()
-    wav_tmp = path + ".kokoro.wav"
 
     # If forced to Edge, skip Kokoro entirely
     if engine_override == "edge":
-        _log("info", "TTS_ENGINE=edge forced, skipping Kokoro", voice=EDGE_VOICE)
+        _log("info", "TTS_ENGINE=edge forced, skipping Kokoro", voice=prof["edge"])
         last: Optional[Exception] = None
         for attempt in (1, 2, 3):
             try:
-                asyncio.run(_edge_save(text, path))
-                _log("info", "TTS generated with Edge (forced)", voice=EDGE_VOICE, output=path)
+                asyncio.run(_edge_save(text, path, prof))
+                _log("info", "TTS generated with Edge (forced)", voice=prof["edge"], output=path)
                 return
             except Exception as e:
                 last = e
@@ -220,31 +281,16 @@ def tts_sync(text: str, path: str) -> None:
 
     # Try Kokoro first (unless forced to skip)
     if engine_override != "kokoro" and _kokoro_probe():
-        try:
-            _log("debug", "generating speech with Kokoro", text_preview=text[:50])
-            _kokoro_wav(text, wav_tmp)
-            # Convert WAV to MP3
-            subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", wav_tmp,
-                            "-codec:a", "libmp3lame", "-q:a", "3", path], check=True)
-            os.remove(wav_tmp)
-            _log("info", "TTS generated with Kokoro", voice=KOKORO_VOICE, output=path)
+        if _try_kokoro(text, path, prof):
             return
-        except Exception as e:
-            if os.path.exists(wav_tmp):
-                try:
-                    os.remove(wav_tmp)
-                except Exception:
-                    pass
-            _log("warn", "kokoro failed in-process, falling back to Edge",
-                 error=str(e))
-    
+
     # Edge fallback with retries
-    _log("info", "using Edge TTS fallback", voice=EDGE_VOICE)
+    _log("info", "using Edge TTS fallback", voice=prof["edge"])
     last: Optional[Exception] = None
     for attempt in (1, 2, 3):
         try:
-            asyncio.run(_edge_save(text, path))
-            _log("info", "TTS generated with Edge", voice=EDGE_VOICE, output=path)
+            asyncio.run(_edge_save(text, path, prof))
+            _log("info", "TTS generated with Edge", voice=prof["edge"], output=path)
             return
         except Exception as e:
             last = e
@@ -255,7 +301,11 @@ def tts_sync(text: str, path: str) -> None:
                 time.sleep(delay)
             else:
                 _log("error", "edge TTS failed after retries", error=str(e))
-    
+
+    # Edge is down or hanging: one last attempt on the local engine.
+    if engine_override != "edge" and _kokoro_probe() and _try_kokoro(text, path, prof):
+        return
+
     _log("fail", "BOTH kokoro and edge TTS failed", last_error=str(last))
     raise RuntimeError(
         f"TTS failed for text {text[:48]!r}: kokoro unavailable and edge_tts "
@@ -268,5 +318,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("text")
     ap.add_argument("output")
+    ap.add_argument("--series", default=None)
     args = ap.parse_args()
-    tts_sync(args.text, args.output)
+    tts_sync(args.text, args.output, args.series)

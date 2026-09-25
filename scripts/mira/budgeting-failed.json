@@ -1,0 +1,422 @@
+{
+  "series": "mira",
+  "format": "long",
+  "title": "Budgeting Failed Because You Made It a Project",
+  "description": "You opened a spreadsheet, made forty columns, and quit by row three. That was not discipline, that was design. Mira from Myth Busters shows the three-line version that survives contact with a real month.\n\nNew episodes Mondays and Thursdays. Shorts Tuesdays and Fridays.",
+  "tags": "budgeting, personal finance, money habits, budgeting india, minimal budgeting, fiscalore, myth busters, mira, personal finance india, how to budget",
+  "thumbnail": {
+    "headline": "FORTY COLUMNS. THREE ROWS.",
+    "scene": "object",
+    "props": {
+      "shape": "clock",
+      "kicker": "the failure",
+      "label": "A spreadsheet nobody finished",
+      "sub": "It was never a discipline problem. It was a design problem."
+    }
+  },
+  "shots": [
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "the scene",
+        "place": "A laptop, Sunday night",
+        "time": "a fresh sheet, forty columns"
+      },
+      "narr": "It starts with a good feeling. New month, new sheet, new discipline. You build columns for everything. Then row three arrives, row three is a surprise, and the entire project is dead by the fourth of the month."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "row 3",
+        "label": "is where budgeting usually dies",
+        "sub": "Not because you are lazy. Because the tool asked for more than a human can hold on a Sunday night."
+      },
+      "narr": "Row three. That is where budgeting usually dies, and it is not because you are lazy. It is because the tool asked for more than a human being can hold in their head on a Sunday night."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "clock",
+        "kicker": "the real problem",
+        "label": "You built a project, not a page",
+        "sub": "Projects need motivation. Pages need nine minutes."
+      },
+      "narr": "Here is the diagnosis. You did not build a budget. You built a project. Projects need motivation, energy, a clean desk and a good mood. A page needs nine minutes and a pen."
+    },
+    {
+      "scene": "split",
+      "props": {
+        "left": {
+          "who": "The old way",
+          "title": "Forty columns",
+          "lines": [
+            "Category, subcategory, payment date, account",
+            "Twelve tabs and a colour code",
+            "Reviewed when motivated"
+          ]
+        },
+        "right": {
+          "who": "The new way",
+          "title": "Three lines",
+          "lines": [
+            "Money in, money out, money left",
+            "One page, one pen",
+            "Reviewed every Sunday"
+          ]
+        }
+      },
+      "narr": "So the fix is not more discipline. The fix is a smaller target. Forty columns becomes three lines. One page, one pen, one Sunday. Everything else is decoration, and decoration is what kills the habit."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "3 lines",
+        "label": "is a complete budget",
+        "sub": "Money in. Money out. Money left. That is the whole model, and it has worked for thirty years."
+      },
+      "narr": "Three lines. Money in. Money out. Money left. That is a complete budget. It has worked for thirty years, and it survives the month that ruins the forty-column version."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "jar",
+        "kicker": "line one",
+        "label": "Money in",
+        "sub": "Salary, side work, anything that lands in your account without you asking"
+      },
+      "narr": "Line one. Money in. Not salary only. Side work, freelance, the odd refund. Whatever lands without you negotiating with yourself. Most people underestimate this line, and most budgets fail because of it."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "bucket",
+        "kicker": "line two",
+        "label": "Money out",
+        "sub": "One number. The one that would hurt to see written down."
+      },
+      "narr": "Line two. Money out. One number, not fourteen categories. The number you would rather not write down, because writing it makes it a fact instead of a feeling."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "door",
+        "kicker": "line three",
+        "label": "Money left",
+        "sub": "The only number that does any work. This is the one that changes your life."
+      },
+      "narr": "Line three. Money left. This is the only number that does any work. The other two are just arithmetic, and this one is the whole point of the page."
+    },
+    {
+      "scene": "chart",
+      "props": {
+        "title": "What happens when line three is zero",
+        "unit": "months of runway",
+        "highlight": 0,
+        "items": [
+          {
+            "label": "Money left = 0",
+            "value": 0,
+            "display": "0"
+          },
+          {
+            "label": "Money left = 10%",
+            "value": 4,
+            "display": "4 months"
+          },
+          {
+            "label": "Money left = 20%",
+            "value": 11,
+            "display": "11 months"
+          }
+        ],
+        "note": "Same salary, same expenses. The only variable is whether the third line was ever a number."
+      },
+      "narr": "Look at what the third line actually buys. With zero left, one bad month is a disaster. With ten percent left, a bad month is an inconvenience. With twenty percent, it is a Tuesday."
+    },
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "the objection",
+        "place": "The same Sunday",
+        "time": "one page, nine minutes"
+      },
+      "narr": "And here is the objection everyone arrives with, usually about four minutes into the nine. One page cannot know the difference between groceries and fuel. Correct. And you already know the difference."
+    },
+    {
+      "scene": "split",
+      "props": {
+        "left": {
+          "who": "Forty columns",
+          "title": "Perfectly wrong",
+          "lines": [
+            "Fourteen categories",
+            "Five forgotten every month",
+            "Abandoned by the fourth"
+          ]
+        },
+        "right": {
+          "who": "Three lines",
+          "title": "Roughly right",
+          "lines": [
+            "One number to check",
+            "Never abandoned, never festive",
+            "Still working in year three"
+          ]
+        }
+      },
+      "narr": "So compare the two. Forty categories, five of them forgotten, abandoned by the fourth. Three lines, one number to check, never abandoned, never festive, and still working in year three."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "9 min",
+        "label": "per Sunday is the entire system",
+        "sub": "Not a workbook. Not an app. Not a coach. A page and nine minutes, once a week."
+      },
+      "narr": "The entire system is nine minutes on a Sunday. Not a workbook. Not an app. Not a coach, and not a subscription to anything. A page, and nine minutes, once a week."
+    },
+    {
+      "scene": "timeline",
+      "props": {
+        "steps": [
+          {
+            "label": "Sunday, 9 min",
+            "detail": "Write the three lines from your bank app"
+          },
+          {
+            "label": "If line three is zero",
+            "detail": "Pick one recurring cost to cut"
+          },
+          {
+            "label": "If line three is positive",
+            "detail": "Move it out the same morning"
+          }
+        ]
+      },
+      "narr": "So the ritual is this. Sunday, nine minutes, write the three lines from your bank app. If the third line is zero, you pick one recurring cost to cut, not five. If it is positive, you move it out the same morning."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "ledger",
+        "kicker": "the honest bit",
+        "label": "Your memory of money is fiction",
+        "sub": "You will not remember what you spent in March. The page will. That is the whole job."
+      },
+      "narr": "And the honest reason the page works is that your memory of money is fiction. You will not remember what you spent in March. The page will remember, quietly, without ever making you feel bad about it."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "1 leak",
+        "label": "is usually all that is missing",
+        "sub": "Most people who finally write the number down find one recurring charge they forgot existed."
+      },
+      "narr": "Most people who finally write the number down find one recurring charge they forgot existed. One. A membership, a delivery habit, a plan they never cancelled. The leak is rarely dramatic. It is just never looked at."
+    },
+    {
+      "scene": "chart",
+      "props": {
+        "title": "One leak closed, one Sunday at a time",
+        "unit": "saved per month, in rupees",
+        "highlight": 2,
+        "items": [
+          {
+            "label": "Month 1",
+            "value": 900,
+            "display": "900"
+          },
+          {
+            "label": "Month 3",
+            "value": 2400,
+            "display": "2.4k"
+          },
+          {
+            "label": "Month 6",
+            "value": 5100,
+            "display": "5.1k"
+          },
+          {
+            "label": "Month 12",
+            "value": 9800,
+            "display": "9.8k"
+          }
+        ],
+        "note": "No new income. No new discipline. Four Sundays and a shorter page each time."
+      },
+      "narr": "Here is what one leak closed looks like over a year. No new income, no new discipline, just four Sundays a month and a page that got shorter every time. The number in the third line is doing all of the work."
+    },
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "the reveal",
+        "place": "A kitchen table, one year in",
+        "time": "the same nine minutes, the same page"
+      },
+      "narr": "A year later the page has not become a system with a name and a colour code. It is still a page. That is the most successful thing about it, and the part nobody finds impressive enough to sell you."
+    },
+    {
+      "scene": "split",
+      "props": {
+        "left": {
+          "who": "The project",
+          "title": "What you built before",
+          "lines": [
+            "Forty columns, five tabs",
+            "Reviewed when motivated",
+            "Abandoned quietly"
+          ]
+        },
+        "right": {
+          "who": "The page",
+          "title": "What you kept",
+          "lines": [
+            "Three lines, one pen",
+            "Reviewed every Sunday",
+            "Still boring, still working"
+          ]
+        }
+      },
+      "narr": "So the project died, as projects do, and the page lived, as pages do. You did not become a budgeting person. You just kept a page, and the page kept the number you actually care about."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "3 lines",
+        "label": "is what I want you to try",
+        "sub": "Not tonight, not after a new income. On the next Sunday, with the number you already have in your bank app."
+      },
+      "narr": "Three lines is all I am asking you to try. Not tonight, not after a raise, not when the month is under control. On the next Sunday, with the number you already have in your bank app."
+    },
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "the second objection",
+        "place": "A kitchen table, eleven at night",
+        "time": "the month that never looks the same"
+      },
+      "narr": "The second objection arrives like this. My income is not the same every month, so a budget is impossible. This is the most reasonable objection anyone has ever made, and it has an answer that is not a spreadsheet."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "1 month",
+        "label": "is the unit, not the calendar month",
+        "sub": "Look at the last thirty days, not the last named month. Irregular income stops being a problem the day you stop using the calendar as the unit."
+      },
+      "narr": "The unit was never the calendar month. It was the month, meaning a rolling block of thirty days that you can actually see in one bank app. Irregular income stops being a problem the day you stop pretending the calendar is the unit."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "ledger",
+        "kicker": "the third objection",
+        "label": "I need a better app",
+        "sub": "You already have one. It has a pie chart, a heat map, and a habit of sending you notifications at 9 PM."
+      },
+      "narr": "The third objection is the app, because the app is always the app. You do not need a better one. You already have one, with a pie chart, a heat map, and a habit of notifying you at nine in the evening like a small financial boss."
+    },
+    {
+      "scene": "split",
+      "props": {
+        "left": {
+          "who": "The new app",
+          "title": "Day one is amazing",
+          "lines": [
+            "Colour, charts, streaks",
+            "Feels like progress",
+            "Day four, back to the old life"
+          ]
+        },
+        "right": {
+          "who": "The page",
+          "title": "Day one is boring",
+          "lines": [
+            "Three lines, one pen",
+            "Feels like admin",
+            "Day four, still boring, still done"
+          ]
+        }
+      },
+      "narr": "So compare the two experiences. The new app is amazing on day one, because it is built to feel like progress. The page is boring on day one, which is exactly why it is still there on day four hundred."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "0",
+        "label": "new subscriptions required",
+        "sub": "The whole system costs a pen, a bank app you already have, and nine minutes that you were spending on the app instead."
+      },
+      "narr": "The entire system costs zero rupees. A pen, a bank app you already own, and the nine minutes you were spending scrolling the other one."
+    },
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "the surprise",
+        "place": "The same table, six weeks in",
+        "time": "nothing new, and less is being spent"
+      },
+      "narr": "And here is the part nobody warns you about, because it is not a rule, it is just what happens. Six weeks in, with no new system and no new app, the number out is smaller. Nobody decided to spend less. The page simply made the spending visible."
+    },
+    {
+      "scene": "chart",
+      "props": {
+        "title": "What visibility does",
+        "unit": "money out, index",
+        "highlight": 1,
+        "items": [
+          {
+            "label": "Before the page",
+            "value": 100,
+            "display": "100"
+          },
+          {
+            "label": "Week 6",
+            "value": 88,
+            "display": "88"
+          },
+          {
+            "label": "Week 12",
+            "value": 79,
+            "display": "79"
+          }
+        ],
+        "note": "Same job, same salary, same habits. The only change is that the number was written down once a week."
+      },
+      "narr": "Same job, same salary, same habits, and the number out falls anyway. The only change in the entire experiment is that the number was written down once a week, in one hand, on a page."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "door",
+        "kicker": "for two",
+        "label": "One page, two columns",
+        "sub": "In money, out money, and a column marked ours if the income is shared."
+      },
+      "narr": "If the income is shared, the page is shared, and that is the whole conversation. One page, two columns, and one column marked ours. A shared page ends the argument that neither person can win, because there is no winning, there is a number."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "9 min",
+        "label": "is also the therapy session",
+        "sub": "The page is where you find out that the argument was never about money. It was about the third line being zero."
+      },
+      "narr": "Nine minutes also works as the therapy session, which is not a joke. The page is where most couples discover that the fight was never about money. It was about the third line being zero and nobody wanting to say it out loud."
+    },
+    {
+      "scene": "endcard",
+      "props": {
+        "line": "Three lines. One Sunday. That is the whole system."
+      },
+      "narr": "So the whole system is three lines and one Sunday, and it is designed to be boring, because boring is the only thing that survives year three."
+    },
+    {
+      "scene": "endcard",
+      "props": {
+        "line": "Myth busted. Budgets fail because they are built like projects."
+      },
+      "narr": "Myth busted. Budgets do not fail because of discipline. They fail because they are built like projects, and nobody has ever kept a project for nine years."
+    }
+  ]
+}

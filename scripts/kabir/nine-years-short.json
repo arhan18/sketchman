@@ -1,0 +1,57 @@
+{
+  "series": "kabir",
+  "format": "short",
+  "title": "The Question That Took Nine Years",
+  "description": "A retired man asked one stranger a single question on a train. Nine years later, the stranger could tell you exactly when it had started. Kabir from The Wealth Lab.",
+  "tags": "personal finance story, money habits, patience, fiscalore, the wealth lab, kabir, short, money story",
+  "thumbnail": {
+    "headline": "ONE QUESTION",
+    "scene": "numbers",
+    "props": { "value": "1 question", "label": "and nine years", "sub": "It did not change his salary. It changed the order." }
+  },
+  "shots": [
+    {
+      "scene": "establish",
+      "props": { "kicker": "A local train", "place": "7:15 AM, the usual carriage", "time": "a stranger sits down" },
+      "narr": "A retired man sits down next to a stranger on a morning train. He asks one question, and then he says nothing else for the entire ride."
+    },
+    {
+      "scene": "object",
+      "props": { "shape": "ledger", "kicker": "the question", "label": "Where does your salary go?", "sub": "Not how much you earn. Where it goes. Then he waits." },
+      "narr": "The question is this. Where does your salary go? Not how much you earn, where it goes. And then he waits, the way people wait when they genuinely do not care about the answer."
+    },
+    {
+      "scene": "split",
+      "props": {
+        "left": { "who": "The assumption", "title": "The leftover is the problem", "lines": ["Not enough left over", "The month is tight", "Saving starts later"] },
+        "right": { "who": "The answer", "title": "The leftover is the result", "lines": ["Nothing saved", "So the month is always tight", "Later never arrives"] }
+      },
+      "narr": "The stranger assumed the small remainder was the problem. The old man said the remainder was not the problem, the remainder was the result."
+    },
+    {
+      "scene": "chart",
+      "props": {
+        "title": "Nine years later, same salary",
+        "unit": "saved, in lakhs",
+        "highlight": 2,
+        "items": [
+          { "label": "Year 1", "value": 1.2, "display": "1.2L" },
+          { "label": "Year 5", "value": 9.6, "display": "9.6L" },
+          { "label": "Year 9", "value": 31.4, "display": "31.4L" }
+        ],
+        "note": "Same income. Same city. One decision, nine years earlier."
+      },
+      "narr": "Nine years later, the salary never changed. The savings did. The late years carried the early years, and nobody noticed the year it quietly began."
+    },
+    {
+      "scene": "object",
+      "props": { "shape": "door", "kicker": "the takeaway", "label": "The door was never income", "sub": "A better offer moves the mood. Only the order moves the money.", "callout": "Your next payday is the only deadline that matters.", "callout_tag": "Rule" },
+      "narr": "The door was never income. A better offer moves the mood for a month. Only the order moves the money, and it starts on the next payday, not on the better offer."
+    },
+    {
+      "scene": "endcard",
+      "props": { "line": "Full story: The Man Who Paid Himself Nothing for Nine Years." },
+      "narr": "One question, on a train, that took nine years to pay out. The full story is in the long episode."
+    }
+  ]
+}

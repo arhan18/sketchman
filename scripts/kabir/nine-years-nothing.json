@@ -1,0 +1,398 @@
+{
+  "series": "kabir",
+  "format": "long",
+  "title": "The Man Who Paid Himself Nothing for Nine Years",
+  "description": "Nikhil earned well and kept nothing. Then he met a retired man in a coaching compartment who asked him one question. A story about order, patience, and the decade you do not notice. Kabir from The Wealth Lab.\n\nNew episodes Mondays and Thursdays.",
+  "tags": "personal finance story, money habits, patience, wealth building, personal finance india, fiscalore, the wealth lab, kabir, investing india, financial independence",
+  "thumbnail": {
+    "headline": "NINE YEARS OF NOTHING",
+    "scene": "numbers",
+    "props": {
+      "value": "9 years",
+      "label": "and then everything changed",
+      "sub": "The decade you never notice is the one that decides everything."
+    }
+  },
+  "shots": [
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "Chapter one",
+        "place": "A rented room, 1:20 AM",
+        "time": "the laptop is the only light on"
+      },
+      "narr": "Nikhil had not opened his bank app in four years. He knew roughly what was in there. Roughly was enough. The app was where bad news lived, and he had decided, without ever saying it, that bad news was optional."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "ledger",
+        "kicker": "what he kept",
+        "label": "A salary and a pattern",
+        "sub": "High income. No record. No plan. No leak chart, because leaks require looking."
+      },
+      "narr": "Nikhil earned well. He also had a pattern, and patterns are what money actually is. High income, no record, no plan. He never tracked anything, because tracking requires looking, and looking was the thing he avoided."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "0",
+        "label": "tracked, for four years",
+        "sub": "You cannot fix a leak you refuse to look at. He was not careless. He was incurious."
+      },
+      "narr": "Zero. Four years, zero records. Not because he was careless. Because he was incurious, and incuriousness is a much more comfortable habit than discipline."
+    },
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "Chapter two",
+        "place": "A local train, 7:15 AM",
+        "time": "the same route he takes every day"
+      },
+      "narr": "Then a transfer changed his route. Same train, same time, one extra carriage. A retired man sat where Nikhil usually sat, and said something that did not sound like advice. It sounded arithmetic."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "ledger",
+        "kicker": "the question",
+        "label": "Where does your salary go?",
+        "sub": "Not how much you earn. Where it goes. The man asked it once, then waited."
+      },
+      "narr": "The man asked him one question. Where does your salary go? Not how much you earn. Where it goes. Then he waited, the way people wait when they genuinely do not care about the answer."
+    },
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "Nikhil's answer",
+        "place": "The same train, the same morning",
+        "time": "he answered before the train moved"
+      },
+      "narr": "Nikhil answered before the train moved. Rent. Food. Kids. Parents. Friends. And then, at the end, a small vague remainder he called savings, and the man did not write it down. He just let it sit there."
+    },
+    {
+      "scene": "split",
+      "props": {
+        "left": {
+          "who": "Nikhil assumed",
+          "title": "The remainder is the problem",
+          "lines": [
+            "Not enough left over",
+            "The month is already tight",
+            "Saving is a good month, later"
+          ]
+        },
+        "right": {
+          "who": "The man said",
+          "title": "The remainder is the result",
+          "lines": [
+            "Nothing gets saved",
+            "So the month is always tight",
+            "Saving stays a good month, later"
+          ]
+        }
+      },
+      "narr": "And here is the turn, the whole turn, and it took one sentence on a moving train. Nikhil assumed his small remainder was the problem. The man said the small remainder was not the problem. The small remainder was the result."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "0",
+        "label": "the same, every single month",
+        "sub": "Not because he spent too much. Because nothing had ever been told to leave first."
+      },
+      "narr": "The same amount, every month, for four years. Not because he spent too much. Because nothing had ever been told to leave first. Order is not a detail. Order is the entire mechanism."
+    },
+    {
+      "scene": "chart",
+      "props": {
+        "title": "Two identical salaries, nine years",
+        "unit": "saved, in lakhs",
+        "highlight": 1,
+        "items": [
+          {
+            "label": "Year 1",
+            "value": 0.0,
+            "display": "0"
+          },
+          {
+            "label": "Year 5",
+            "value": 0.0,
+            "display": "0"
+          },
+          {
+            "label": "Year 9",
+            "value": 0.0,
+            "display": "0"
+          },
+          {
+            "label": "Year 9, other order",
+            "value": 31.4,
+            "display": "31.4L"
+          }
+        ],
+        "note": "Same income. Same city. Same man, one decision earlier in the month."
+      },
+      "narr": "Two people. The same salary, the same city, the same nine years. One saved nothing, because nothing was ever asked to save. The other saved nothing visible either, for the first two years. Then the years started carrying each other."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "2 years",
+        "label": "before anything looked different",
+        "sub": "The first two years are the part nobody shows you, because nothing to show."
+      },
+      "narr": "And this is the part nobody shows you, because there is nothing to show. The first two years, the difference is invisible. The balances look the same. The bank app looks the same. Everything looks the same."
+    },
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "Chapter three",
+        "place": "The same train, four months later",
+        "time": "he sits down without being asked"
+      },
+      "narr": "Four months later, the man was still there. Same carriage, same time, same calm. He did not ask how Nikhil was doing. He asked whether the remainder had a name yet, and Nikhil realised he had started giving it one."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "jar",
+        "kicker": "the change",
+        "label": "A remainder with a name",
+        "sub": "It stopped being whatever was left. It became the first thing that left."
+      },
+      "narr": "The change was almost boring. The remainder had a name, and a name has a date. It stopped being whatever was left over at the end of a mood. It became the first thing that left, on a fixed morning, before the mood could vote."
+    },
+    {
+      "scene": "timeline",
+      "props": {
+        "steps": [
+          {
+            "label": "Payday morning",
+            "detail": "A fixed amount leaves before anything else"
+          },
+          {
+            "label": "The first Sunday",
+            "detail": "One month looked at, honestly, for nine minutes"
+          },
+          {
+            "label": "Every month after",
+            "detail": "No decisions, no willpower, no forgetting"
+          }
+        ]
+      },
+      "narr": "So he did three things, in this order, and he did them for the same reason the man never explained. On payday morning, a fixed amount left first. On the first Sunday, he looked at one month for nine minutes. And then he never had to decide again."
+    },
+    {
+      "scene": "chart",
+      "props": {
+        "title": "The same man, the same salary",
+        "unit": "in lakhs",
+        "highlight": 3,
+        "items": [
+          {
+            "label": "Year 1",
+            "value": 1.2,
+            "display": "1.2L"
+          },
+          {
+            "label": "Year 3",
+            "value": 5.9,
+            "display": "5.9L"
+          },
+          {
+            "label": "Year 6",
+            "value": 18.4,
+            "display": "18.4L"
+          },
+          {
+            "label": "Year 9",
+            "value": 31.4,
+            "display": "31.4L"
+          }
+        ],
+        "note": "The late years are doing almost all of the work. That is the whole secret, and it is not a secret."
+      },
+      "narr": "And here is the shape of it, nine years later. One point two lakhs. Then almost six. Then eighteen. And by year nine, thirty-one. Notice the curve. The late years do almost all of the work, because the early years bought them."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "7x",
+        "label": "the late years do to the early ones",
+        "sub": "Year nine is not nine times year one. It is seven times, on a base nobody could see."
+      },
+      "narr": "Year nine is not nine times year one. It is closer to seven, on a base so small nobody could see it. That ratio is the entire difference between the two men, and it is why patience feels like luck and is not luck at all."
+    },
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "Chapter four",
+        "place": "The platform, nine years on",
+        "time": "same station, different man"
+      },
+      "narr": "Nine years on, Nikhil still takes that train. The carriage is the same. The man is not. Nikhil pays for his tea now, and there is a second small jar in his bag that he does not talk about, because it is nobody's business."
+    },
+    {
+      "scene": "split",
+      "props": {
+        "left": {
+          "who": "Who he was",
+          "title": "The salary man",
+          "lines": [
+            "Income decided his mood",
+            "The month decided the rest",
+            "Savings were a good month, later"
+          ]
+        },
+        "right": {
+          "who": "Who he became",
+          "title": "The order man",
+          "lines": [
+            "The transfer decides the month",
+            "The month is a plan, not a surprise",
+            "Savings happen on a date"
+          ]
+        }
+      },
+      "narr": "The salary did not change. Not the job, not the city, not the pay. What changed was who decided, and when. Income used to decide his mood. Now the transfer decides his month, and the month is a plan instead of a surprise."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "door",
+        "kicker": "the thing nobody tells you",
+        "label": "The door was never income",
+        "sub": "A better offer would have moved the mood. It would not have moved the money."
+      },
+      "narr": "And here is the thing nobody tells you. A better offer would have moved his mood. It would not have moved his money. His salary was never the door. The door was always the order, and the order was always available to him on the next payday."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "1 morning",
+        "label": "is what the whole thing costs",
+        "sub": "Not a philosophy. Not a personality change. One morning, one transfer, one decision you never make twice."
+      },
+      "narr": "So the whole thing costs one morning. Not a philosophy, not a personality change, not a new identity. One morning, one transfer, one decision you never have to make again."
+    },
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "Why he looked away",
+        "place": "A kitchen, six in the evening",
+        "time": "his daughter is asking for something small"
+      },
+      "narr": "There was a reason Nikhil looked away, and it was older than laziness. When he was nineteen, his father had handed over a provident fund passbook and said one sentence. We will look at this together, when the time is right. His father died before the time was right."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "ledger",
+        "kicker": "the inheritance of habits",
+        "label": "A passbook, unread",
+        "sub": "So the son learned the only lesson available. Looking at money is dangerous, therefore do not look."
+      },
+      "narr": "The passbook stayed in a cupboard. So Nikhil learned the only lesson that situation teaches. Looking at money is dangerous. Therefore, do not look. It is not stupidity. It is a habit with a perfectly sensible origin."
+    },
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "The request",
+        "place": "The same kitchen, an hour later",
+        "time": "a request he could not refuse"
+      },
+      "narr": "And then the evening asked him a question his bank app could not. His daughter needed something for school, and the amount was small, and the asking was not, and he said yes in the voice people use when they are spending money they have not earned yet."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "1 req",
+        "label": "is all it takes to move a life",
+        "sub": "You do not need a crisis. You need one request you answer with money you have not saved."
+      },
+      "narr": "One request. That is all it takes to move a life, and nobody sends a warning. You do not need a crisis. You need one request you answer with money you have not saved, and a feeling you will remember for years."
+    },
+    {
+      "scene": "object",
+      "props": {
+        "shape": "clock",
+        "kicker": "the man's silence",
+        "label": "A year and a half after he stopped",
+        "sub": "The man was not being mysterious. He was letting the question do its work."
+      },
+      "narr": "The man in the carriage never said any of this. He never needed to. Once a week he asked where the salary went, and then he was quiet, and the quiet did the work that advice would have ruined."
+    },
+    {
+      "scene": "chart",
+      "props": {
+        "title": "The near-mistake",
+        "unit": "in lakhs, after five years",
+        "highlight": 1,
+        "items": [
+          {
+            "label": "Boring, untouched",
+            "value": 18.4,
+            "display": "18.4L"
+          },
+          {
+            "label": "Moved once, badly",
+            "value": 6.2,
+            "display": "6.2L"
+          }
+        ],
+        "note": "The money was never the problem. The one exciting decision was the problem."
+      },
+      "narr": "Nikhil nearly lost it once, in year five, and the story matters more than the growth curve. A colleague had a fund that was up eighty percent in a year, and Nikhil moved almost everything into it, because by then he had learned to save but not yet to leave things alone."
+    },
+    {
+      "scene": "numbers",
+      "props": {
+        "value": "12L",
+        "label": "the lesson cost",
+        "sub": "The recovery took twenty-two months. The lesson took one afternoon, and it was not about markets."
+      },
+      "narr": "Twelve lakhs, gone in twenty-two months, back and then some. And the lesson was not really about markets. It was about the fact that an exciting decision feels like a decision, and the boring ones feel like surrender."
+    },
+    {
+      "scene": "establish",
+      "props": {
+        "kicker": "What the money bought",
+        "place": "A quiet morning, seven years in",
+        "time": "a phone call he could say no to"
+      },
+      "narr": "Seven years in, Nikhil took a month off when his father would have needed it, and the reason the family noticed was not the holiday. It was that he did not check a single balance before going."
+    },
+    {
+      "scene": "split",
+      "props": {
+        "left": {
+          "who": "Before",
+          "title": "Money decided the day",
+          "lines": [
+            "Every yes depended on the balance",
+            "Every no felt like failure",
+            "Every month had one mood"
+          ]
+        },
+        "right": {
+          "who": "After",
+          "title": "The day decided the money",
+          "lines": [
+            "The balance stopped being a verdict",
+            "Some no-s became ordinary",
+            "The month stopped having moods"
+          ]
+        }
+      },
+      "narr": "Before, money decided the day. Every yes depended on a balance, every no felt like a personal failure. After, the order was set, the balance stopped being a verdict, and a no became an ordinary word."
+    },
+    {
+      "scene": "endcard",
+      "props": {
+        "line": "The decade you do not notice is the one that decides."
+      },
+      "narr": "Nikhil did not get rich on a train. He got rich on a train, nine years earlier, in the order of two sentences. Your decade is doing something right now. The only question is whether anything leaves first."
+    }
+  ]
+}

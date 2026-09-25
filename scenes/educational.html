@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>scene</title>
+<style>
+/*__BASECSS__*/
+
+:root {
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "DejaVu Serif", serif;
+  --font-body: "Helvetica Neue", "DejaVu Sans", Arial, sans-serif;
+  --caption-size: 30px;
+  --rule: rgba(23, 36, 31, 0.14);
+}
+
+body {
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(255, 253, 247, 0.85), transparent 60%),
+    var(--background);
+}
+#stage::after {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(23, 36, 31, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(23, 36, 31, 0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+  pointer-events: none;
+}
+
+.tag {
+  position: absolute; top: 40px; left: 56px;
+  display: flex; align-items: center; gap: 14px;
+  font: 700 13px/1 var(--font-body);
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--accent);
+  animation: fadeIn .6s ease-out both;
+}
+.tag i { display: block; width: 54px; height: 2px; background: var(--accent); opacity: .55; }
+
+.caption { bottom: 44px; }
+.caption-line {
+  background: var(--surface);
+  border-left: 4px solid var(--accent);
+  color: var(--ink);
+  padding: 14px 26px;
+  border-radius: 4px;
+  box-shadow: 0 18px 40px rgba(23, 36, 31, 0.12);
+  animation: capIn .34s cubic-bezier(.2, .8, .2, 1) both;
+}
+body.vertical .caption { bottom: 96px; }
+body.vertical .caption-size { font-size: 34px; }
+body.vertical .tag { top: 64px; left: 56px; }
+
+/* ---------- establish ---------- */
+.cam { position: absolute; inset: 0; animation: camPush 9s ease-out both; }
+@keyframes camPush { from { transform: scale(1.015); } to { transform: scale(1.075); } }
+.skyline { position: absolute; inset: 0; }
+.skyline .band {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 40%;
+  background: linear-gradient(to bottom, rgba(23, 36, 31, 0.04), rgba(23, 36, 31, 0.09));
+  border-top: 2px solid var(--rule);
+}
+.skyline .sun {
+  position: absolute; right: 16%; top: 16%;
+  width: 132px; height: 132px; border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #fff, var(--accent) 130%);
+  opacity: .16;
+  animation: sunIn 1.2s ease-out both;
+}
+@keyframes sunIn { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: .16; } }
+.ground-line { position: absolute; left: 8%; right: 8%; bottom: 39%; height: 2px; background: var(--rule); }
+.figure { position: absolute; bottom: 19%; left: 14%; animation: rise .8s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes rise { from { transform: translateY(26px); opacity: 0; } to { transform: none; opacity: 1; } }
+.place-card {
+  position: absolute; right: 9%; top: 30%;
+  background: var(--surface); border: 1px solid var(--rule);
+  border-radius: 6px; padding: 22px 26px; min-width: 320px;
+  box-shadow: 0 24px 60px rgba(23, 36, 31, 0.10);
+  animation: slideL .75s cubic-bezier(.2, .8, .2, 1) .1s both;
+}
+@keyframes slideL { from { transform: translateX(34px); opacity: 0; } to { transform: none; opacity: 1; } }
+.kicker {
+  display: block; font: 700 12px/1 var(--font-body);
+  letter-spacing: .2em; text-transform: uppercase; color: var(--accent);
+  margin-bottom: 10px;
+}
+.place-card strong { display: block; font: 400 40px/1.1 var(--font-display); color: var(--ink); }
+.place-card em { display: block; margin-top: 10px; font: 400 18px/1.4 var(--font-body); color: var(--muted); font-style: normal; }
+
+/* ---------- numbers ---------- */
+.numbers { position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 18px; }
+.numbers .value {
+  font: 400 clamp(150px, 21vw, 260px)/0.9 var(--font-display);
+  color: var(--accent); letter-spacing: -0.03em;
+  animation: pop .7s cubic-bezier(.2, .9, .2, 1) both;
+}
+@keyframes pop { from { transform: scale(.86); opacity: 0; } to { transform: none; opacity: 1; } }
+.numbers .rule { width: 0; height: 3px; background: var(--ink); opacity: .25;
+  animation: ruleX .8s ease-out .18s both; }
+@keyframes ruleX { from { width: 0; } to { width: 260px; } }
+.numbers .label { font: 700 26px/1.3 var(--font-body); color: var(--ink); text-align: center;
+  max-width: 70%; animation: fadeIn .6s ease-out .3s both; }
+.numbers .sub { font: 400 19px/1.5 var(--font-body); color: var(--muted); text-align: center;
+  max-width: 62%; animation: fadeIn .6s ease-out .42s both; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ---------- chart ---------- */
+.chart { position: absolute; left: 8%; right: 8%; top: 20%; bottom: 24%; display: flex; flex-direction: column; }
+.chart h2 { font: 400 34px/1.2 var(--font-display); margin: 0 0 6px; color: var(--ink); }
+.chart .unit { font: 700 13px/1 var(--font-body); letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 26px; }
+.bars { flex: 1; display: flex; align-items: flex-end; gap: 26px; border-bottom: 2px solid var(--rule); padding: 0 8px; }
+.bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 10px; height: 100%; }
+.bar .fill {
+  width: 100%; border-radius: 4px 4px 0 0;
+  background: rgba(23, 36, 31, 0.16);
+  transform-origin: bottom; animation: grow .75s cubic-bezier(.2, .8, .2, 1) both;
+  animation-delay: calc(var(--i) * .1s);
+}
+.bar.hot .fill { background: var(--accent); }
+.bar .v { font: 700 18px/1 var(--font-body); color: var(--ink); opacity: .8;
+  animation: fadeIn .5s ease-out both; animation-delay: calc(var(--i) * .1s + .3s); }
+@keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.bar-labels { display: flex; gap: 26px; padding: 14px 8px 0; }
+.bar-labels span { flex: 1; text-align: center; font: 600 16px/1.3 var(--font-body); color: var(--muted); }
+.chart .note { margin-top: 22px; font: 400 19px/1.5 var(--font-body); color: var(--ink); max-width: 78%; }
+
+/* ---------- split ---------- */
+.split { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0; align-items: center; padding: 0 8%; }
+.split .divider { position: absolute; left: 50%; top: 16%; bottom: 22%; width: 2px;
+  background: var(--rule); transform-origin: top; animation: drawY 1s ease-out both; }
+@keyframes drawY { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.panel { padding: 0 46px; animation: rise .7s cubic-bezier(.2, .8, .2, 1) both; }
+.panel.right { animation-delay: .14s; }
+.panel h3 { font: 400 34px/1.15 var(--font-display); margin: 0 0 16px; color: var(--ink); }
+.panel.right h3 { color: var(--accent); }
+.panel ul { margin: 0; padding: 0; list-style: none; }
+.panel li { font: 400 19px/1.5 var(--font-body); color: var(--muted); padding: 7px 0;
+  border-top: 1px solid var(--rule); }
+.panel .who { font: 700 12px/1 var(--font-body); letter-spacing: .2em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 12px; display: block; }
+
+/* ---------- object ---------- */
+.object { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  padding-bottom: 130px; }
+.object .art { width: 340px; height: 340px; animation: rise .8s cubic-bezier(.2, .8, .2, 1) both; }
+.object .meta { position: absolute; left: 50%; bottom: 20%; transform: translateX(-50%);
+  text-align: center; animation: fadeIn .6s ease-out .3s both; }
+.object .meta strong { display: block; font: 400 38px/1.1 var(--font-display); color: var(--ink); }
+.object .meta em { display: block; margin-top: 8px; font: 400 18px/1.4 var(--font-body);
+  color: var(--muted); font-style: normal; }
+.object .callout { position: absolute; right: 12%; top: 26%; border-left: 2px solid var(--accent);
+  padding-left: 18px; max-width: 300px; animation: slideL .7s ease-out .2s both; }
+.object .callout span { font: 700 12px/1 var(--font-body); letter-spacing: .18em;
+  text-transform: uppercase; color: var(--accent); }
+.object .callout p { margin: 8px 0 0; font: 400 19px/1.45 var(--font-body); color: var(--ink); }
+
+/* ---------- timeline ---------- */
+.timeline { position: absolute; left: 9%; right: 9%; top: 30%; }
+.timeline .track { position: relative; height: 3px; background: var(--rule); transform-origin: left;
+  animation: drawX 1.1s ease-out both; }
+@keyframes drawX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.timeline .steps { display: flex; justify-content: space-between; margin-top: -9px; }
+.timeline .step { width: 24%; animation: rise .6s cubic-bezier(.2, .8, .2, 1) both;
+  animation-delay: calc(var(--i) * .16s); }
+.timeline .dot { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); }
+.timeline h3 { margin: 18px 0 6px; font: 400 27px/1.2 var(--font-display); }
+.timeline p { margin: 0; font: 400 17px/1.45 var(--font-body); color: var(--muted); }
+
+/* ---------- endcard ---------- */
+.endcard { position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 16px; text-align: center; }
+.endcard .mark { width: 74px; height: 74px; border-radius: 50%; border: 2px solid var(--accent);
+  display: flex; align-items: center; justify-content: center; color: var(--accent);
+  font: 700 26px/1 var(--font-body); animation: pop .6s ease-out both; }
+.endcard h2 { margin: 6px 0 0; font: 400 52px/1.05 var(--font-display); color: var(--ink);
+  animation: fadeIn .6s ease-out .12s both; }
+.endcard p { margin: 0; font: 400 19px/1.5 var(--font-body); color: var(--muted);
+  animation: fadeIn .6s ease-out .22s both; }
+.endcard .host { margin-top: 14px; font: 700 13px/1 var(--font-body); letter-spacing: .22em;
+  text-transform: uppercase; color: var(--accent); animation: fadeIn .6s ease-out .3s both; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>window.PAYLOAD = /*__PAYLOAD__*/;</script>
+<script>
+window.SKETCHMAN_STYLE = (function () {
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function tag(series) {
+    return '<div class="tag"><span>' + esc(series.show) + '</span><i></i></div>';
+  }
+  function figure(mood) {
+    var tilt = mood === 'lean' ? 'rotate(-4deg)' : 'none';
+    return '<svg viewBox="0 0 120 190" width="120" height="190" style="transform:' + tilt + '">'
+      + '<circle cx="60" cy="46" r="26" fill="var(--accent)" opacity="0.9"/>'
+      + '<path d="M18 186c0-42 19-70 42-70s42 28 42 70z" fill="var(--ink)" opacity="0.85"/>'
+      + '<rect x="30" y="112" width="60" height="8" rx="4" fill="var(--surface)"/>'
+      + '</svg>';
+  }
+  function shape(kind) {
+    var s = {
+      jar: '<path d="M70 60h44v140a24 24 0 0 1-24 24H94a24 24 0 0 1-24-24z" fill="none" stroke="var(--accent)" stroke-width="6"/>'
+           + '<rect x="64" y="36" width="56" height="26" rx="8" fill="var(--ink)"/>'
+           + '<path d="M72 150h40v50a16 16 0 0 1-16 16h-8a16 16 0 0 1-16-16z" fill="var(--accent)" opacity="0.22"/>',
+      bucket: '<path d="M58 84h124l-14 122a16 16 0 0 1-16 14H88a16 16 0 0 1-16-14z" fill="none" stroke="var(--accent)" stroke-width="6"/>'
+             + '<path d="M70 120c14-8 26 10 40 2s26 10 40 2" stroke="var(--ink)" stroke-width="4" fill="none" opacity="0.5"/>'
+             + '<circle cx="120" cy="150" r="16" fill="var(--accent)" opacity="0.3"/>',
+      clock: '<circle cx="120" cy="120" r="86" fill="none" stroke="var(--accent)" stroke-width="6"/>'
+            + '<path d="M120 120V66" stroke="var(--ink)" stroke-width="7" stroke-linecap="round"/>'
+            + '<path d="M120 120l38 24" stroke="var(--accent)" stroke-width="7" stroke-linecap="round"/>',
+      phone: '<rect x="62" y="30" width="116" height="182" rx="18" fill="none" stroke="var(--accent)" stroke-width="6"/>'
+            + '<rect x="80" y="66" width="80" height="10" rx="5" fill="var(--ink)" opacity="0.35"/>'
+            + '<rect x="80" y="92" width="60" height="10" rx="5" fill="var(--ink)" opacity="0.22"/>'
+            + '<rect x="80" y="118" width="72" height="10" rx="5" fill="var(--accent)" opacity="0.5"/>'
+    };
+    return '<svg viewBox="0 0 240 240" width="100%" height="100%">'
+      + (s[kind] || s.jar) + '</svg>';
+  }
+
+  var scenes = {
+    establish: function (c) {
+      var p = c.props || {};
+      return '<div class="cam">' + tag(series_tag(c))
+        + '<div class="skyline"><div class="band"></div><div class="sun"></div></div>'
+        + '<div class="ground-line"></div>'
+        + '<div class="figure">' + figure(p.mood) + '</div>'
+        + '<div class="place-card"><span class="kicker">' + esc(p.kicker || 'Scene') + '</span>'
+        + '<strong>' + esc(p.place) + '</strong><em>' + esc(p.time || '') + '</em></div>'
+        + '</div>';
+    },
+    numbers: function (c) {
+      var p = c.props || {};
+      return tag(series_tag(c))
+        + '<div class="numbers"><div class="value">' + esc(p.value) + '</div>'
+        + '<div class="rule"></div>'
+        + '<div class="label">' + esc(p.label) + '</div>'
+        + (p.sub ? '<div class="sub">' + esc(p.sub) + '</div>' : '')
+        + '</div>';
+    },
+    chart: function (c) {
+      var p = c.props || {}, items = p.items || [];
+      var max = 0;
+      items.forEach(function (it) { if (Number(it.value) > max) max = Number(it.value); });
+      max = max || 1;
+      var bars = items.map(function (it, i) {
+        var h = Math.max(8, Math.round((Number(it.value) / max) * 100));
+        var hot = i === p.highlight;
+        return '<div class="bar' + (hot ? ' hot' : '') + '">'
+          + '<div class="v">' + esc(it.display || it.value) + '</div>'
+          + '<div class="fill" style="height:' + h + '%; --i:' + i + '"></div></div>';
+      }).join('');
+      var labels = items.map(function (it) { return '<span>' + esc(it.label) + '</span>'; }).join('');
+      return tag(series_tag(c))
+        + '<div class="chart"><h2>' + esc(p.title) + '</h2>'
+        + '<div class="unit">' + esc(p.unit || '') + '</div>'
+        + '<div class="bars">' + bars + '</div>'
+        + '<div class="bar-labels">' + labels + '</div>'
+        + (p.note ? '<div class="note">' + esc(p.note) + '</div>' : '')
+        + '</div>';
+    },
+    split: function (c) {
+      var p = c.props || {}, l = p.left || {}, r = p.right || {};
+      function panel(side) {
+        var d = side === 'left' ? l : r;
+        var lines = (d.lines || []).map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
+        return '<div class="panel ' + side + '"><span class="who">' + esc(d.who || '') + '</span>'
+          + '<h3>' + esc(d.title) + '</h3><ul>' + lines + '</ul></div>';
+      }
+      return tag(series_tag(c)) + '<div class="split"><div class="divider"></div>'
+        + panel('left') + panel('right') + '</div>';
+    },
+    object: function (c) {
+      var p = c.props || {};
+      return tag(series_tag(c))
+        + '<div class="object"><div class="art">' + shape(p.shape) + '</div>'
+        + '<div class="meta"><strong>' + esc(p.label) + '</strong>'
+        + '<em>' + esc(p.sub || '') + '</em></div>'
+        + (p.callout ? '<div class="callout"><span>' + esc(p.callout_tag || 'Note') + '</span><p>' + esc(p.callout) + '</p></div>' : '')
+        + '</div>';
+    },
+    timeline: function (c) {
+      var p = c.props || {}, steps = p.steps || [];
+      var body = steps.map(function (s, i) {
+        return '<div class="step" style="--i:' + i + '"><div class="dot"></div>'
+          + '<h3>' + esc(s.label) + '</h3><p>' + esc(s.detail || '') + '</p></div>';
+      }).join('');
+      return tag(series_tag(c))
+        + '<div class="timeline"><div class="track"></div><div class="steps">' + body + '</div></div>';
+    },
+    endcard: function (c) {
+      var p = c.props || {}, s = series_tag(c);
+      return '<div class="endcard"><div class="mark">' + esc((s.host || '?').charAt(0)) + '</div>'
+        + '<h2>' + esc(s.show) + '</h2>'
+        + '<p>' + esc(p.line || 'New episodes twice a week.') + '</p>'
+        + '<div class="host">' + esc(s.signoff) + '</div></div>';
+    }
+  };
+
+  function series_tag(clip) { return window.PAYLOAD.series; }
+
+  return {
+    renderShot: function (clip) {
+      var fn = scenes[clip.scene] || scenes.numbers;
+      return fn(clip);
+    }
+  };
+})();
+</script>
+<script>/*__RUNTIME__*/</script>
+</body>
+</html>

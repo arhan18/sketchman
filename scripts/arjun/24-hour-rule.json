@@ -1,0 +1,48 @@
+{
+  "series": "arjun",
+  "format": "short",
+  "title": "The 24-Hour Rule (60 Seconds)",
+  "description": "One rule, no spreadsheet: let twenty-four hours pass between payday and spending. Arjun from The Quiet Ledger on the cheapest habit in personal finance.",
+  "tags": "personal finance, money habits, 24 hour rule, payday, fiscalore, the quiet ledger, arjun, short",
+  "thumbnail": {
+    "headline": "WAIT 24 HOURS",
+    "scene": "numbers",
+    "props": { "value": "24 hrs", "label": "between payday and spending", "sub": "The cheapest habit in personal finance." }
+  },
+  "shots": [
+    {
+      "scene": "establish",
+      "props": { "kicker": "Payday", "place": "10:02 AM, bank app open", "time": "the number you waited thirty days for", "mood": "lean" },
+      "narr": "Your salary lands. You have about ninety seconds before your brain starts spending it. Here is the cheapest habit in personal finance, and it costs nothing."
+    },
+    {
+      "scene": "numbers",
+      "props": { "value": "24 hrs", "label": "before you spend anything", "sub": "One day. Then the wants and the needs sort themselves out." },
+      "narr": "Do not spend anything for twenty-four hours. One day. No shopping, no upgrades, no new plan. The wants and the needs separate themselves almost immediately."
+    },
+    {
+      "scene": "chart",
+      "props": {
+        "title": "Same salary, different wait",
+        "unit": "saved in a year",
+        "highlight": 1,
+        "items": [
+          { "label": "Spend on payday", "value": 0, "display": "0" },
+          { "label": "Wait one day", "value": 46000, "display": "46k" }
+        ],
+        "note": "Not less earning. Less impulse. The wait does the work."
+      },
+      "narr": "Two people, same salary. One spends on payday, one waits a day. A year later the difference is not small, and nobody bought anything smarter."
+    },
+    {
+      "scene": "object",
+      "props": { "shape": "clock", "label": "Set one rule", "sub": "Money on payday moves out first, and you spend what is left", "callout": "The amount does not matter. The order does.", "callout_tag": "Rule" },
+      "narr": "So set one rule. On payday, money moves out to your future first, and you spend whatever is genuinely left. The amount is not the point. The order is the point."
+    },
+    {
+      "scene": "endcard",
+      "props": { "line": "Full episode: The 24-Hour Rule." },
+      "narr": "One rule, one day, no spreadsheet. The full version of this is in the long episode, and it is still the cheapest thing in personal finance."
+    }
+  ]
+}

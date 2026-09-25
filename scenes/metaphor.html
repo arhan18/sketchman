@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>scene</title>
+<style>
+/*__BASECSS__*/
+
+:root {
+  --font-display: "Helvetica Neue", "Arial Black", "DejaVu Sans", Arial, sans-serif;
+  --font-body: "Helvetica Neue", "DejaVu Sans", Arial, sans-serif;
+  --caption-size: 30px;
+}
+
+body { background: var(--background); }
+#stage::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 200px rgba(33, 30, 27, 0.05);
+}
+
+.mark {
+  position: absolute; top: 44px; left: 60px;
+  font: 800 12px/1 var(--font-body); letter-spacing: .3em; text-transform: uppercase;
+  color: var(--muted); animation: fade .8s ease-out both;
+}
+.mark b { color: var(--accent); font-weight: 800; }
+
+.caption { bottom: 56px; justify-content: flex-start; padding-left: 60px; }
+.caption-line {
+  font-weight: 500; color: var(--ink); background: transparent;
+  border: 0; padding: 0; max-width: 66%;
+  text-align: left; animation: fade .5s ease-out both;
+}
+body.vertical .caption { bottom: 110px; padding-left: 56px; }
+body.vertical .caption-line { max-width: 84%; }
+
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes driftIn { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+@keyframes riseSlow { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes breathe { from { transform: scale(1); } to { transform: scale(1.04); } }
+
+/* ---------- establish: one small figure, enormous sky ---------- */
+.est { position: absolute; inset: 0; }
+.est .floor { position: absolute; left: 0; right: 0; bottom: 26%; height: 1px; background: var(--ink); opacity: .18; }
+.est .dot {
+  position: absolute; left: 50%; top: 16%;
+  width: 340px; height: 340px; margin-left: -170px; border-radius: 50%;
+  background: var(--accent); opacity: .05; animation: breathe 9s ease-in-out both;
+}
+.est .who { position: absolute; left: 18%; bottom: 26%; animation: driftIn 1s ease-out both; }
+.est .who svg { display: block; }
+.est .caption-card { position: absolute; left: 18%; top: 16%; animation: riseSlow .9s ease-out .2s both; }
+.est .caption-card .k { font: 800 11px/1 var(--font-body); letter-spacing: .28em;
+  text-transform: uppercase; color: var(--accent); }
+.est .caption-card .p { margin: 14px 0 0; font: 800 44px/1.05 var(--font-display);
+  letter-spacing: -.03em; color: var(--ink); }
+.est .caption-card .t { margin: 12px 0 0; font: 400 17px/1.5 var(--font-body); color: var(--muted); }
+
+/* ---------- numbers: type as the image ---------- */
+.num { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding-left: 12%; }
+.num .v {
+  font: 800 clamp(170px, 26vw, 330px)/0.82 var(--font-display);
+  letter-spacing: -.06em; color: var(--ink); opacity: .92;
+  animation: riseSlow 1s cubic-bezier(.2, .8, .2, 1) both;
+}
+.num .v em { font-style: normal; color: var(--accent); }
+.num .l { margin-top: 26px; font: 800 20px/1.3 var(--font-body); letter-spacing: .04em;
+  color: var(--accent); text-transform: uppercase; animation: fade .7s ease-out .35s both; }
+.num .s { margin-top: 10px; font: 400 19px/1.5 var(--font-body); color: var(--muted);
+  max-width: 46%; animation: fade .7s ease-out .5s both; }
+
+/* ---------- object: one thing, lots of nothing ---------- */
+.obj { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.obj .thing { width: 300px; height: 300px; animation: riseSlow 1.1s cubic-bezier(.2, .8, .2, 1) both; }
+.obj .side { position: absolute; left: 12%; bottom: 24%; max-width: 300px; animation: driftIn .9s ease-out .3s both; }
+.obj .side .k { font: 800 11px/1 var(--font-body); letter-spacing: .28em;
+  text-transform: uppercase; color: var(--muted); }
+.obj .side .p { margin: 12px 0 0; font: 800 30px/1.15 var(--font-display);
+  letter-spacing: -.02em; color: var(--ink); }
+.obj .side .s { margin: 10px 0 0; font: 400 17px/1.5 var(--font-body); color: var(--muted); }
+
+/* ---------- split: two specks, one gulf ---------- */
+.two { position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 16%; }
+.two .sidebox { width: 250px; animation: riseSlow .8s ease-out both; }
+.two .sidebox.right { animation-delay: .2s; text-align: right; }
+.two .sidebox .k { font: 800 11px/1 var(--font-body); letter-spacing: .28em;
+  text-transform: uppercase; color: var(--muted); }
+.two .sidebox .p { margin: 12px 0 0; font: 800 34px/1.1 var(--font-display);
+  letter-spacing: -.02em; color: var(--ink); }
+.two .sidebox.right .p { color: var(--accent); }
+.two .sidebox .s { margin: 10px 0 0; font: 400 17px/1.55 var(--font-body); color: var(--muted); }
+.two .gap { flex: 1; height: 1px; background: var(--ink); opacity: .12; margin: 0 40px; }
+
+/* ---------- chart: a single line doing the talking ---------- */
+.line { position: absolute; left: 12%; right: 12%; top: 24%; }
+.line .h { font: 800 24px/1.2 var(--font-display); letter-spacing: -.01em; color: var(--ink); }
+.line .u { margin-top: 8px; font: 800 11px/1 var(--font-body); letter-spacing: .28em;
+  text-transform: uppercase; color: var(--muted); }
+.line svg { width: 100%; height: 260px; margin-top: 34px; overflow: visible; }
+.line .path { fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round;
+  stroke-dasharray: 1200; stroke-dashoffset: 1200; animation: draw 2.4s ease-out .2s both; }
+.line .ghost { fill: none; stroke: var(--ink); stroke-width: 2; opacity: .16;
+  stroke-dasharray: 8 10; }
+.line .cap { position: absolute; margin-top: 18px; font: 400 18px/1.5 var(--font-body);
+  color: var(--muted); max-width: 60%; }
+@keyframes draw { from { stroke-dashoffset: 1200; } to { stroke-dashoffset: 0; } }
+.line .dots circle { fill: var(--accent); animation: fade .5s ease-out both;
+  animation-delay: calc(var(--i) * .35s + .6s); }
+
+/* ---------- timeline: three marks on one rule ---------- */
+.steps { position: absolute; left: 14%; right: 14%; top: 34%; }
+.steps .rule { height: 1px; background: var(--ink); opacity: .2; transform-origin: left;
+  animation: ruleX 1.2s ease-out both; }
+@keyframes ruleX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.steps .row { display: flex; justify-content: space-between; margin-top: 34px; }
+.steps .step { width: 26%; animation: riseSlow .7s ease-out both; animation-delay: calc(var(--i) * .18s); }
+.steps .mark { width: 10px; height: 10px; background: var(--accent); }
+.steps .p { margin: 16px 0 0; font: 800 26px/1.15 var(--font-display); letter-spacing: -.02em; color: var(--ink); }
+.steps .s { margin: 8px 0 0; font: 400 16px/1.5 var(--font-body); color: var(--muted); }
+
+/* ---------- endcard: type only ---------- */
+.outro { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding-left: 12%; }
+.outro .a { font: 800 64px/1 var(--font-display); letter-spacing: -.04em; color: var(--ink);
+  animation: riseSlow .9s ease-out both; }
+.outro .a b { color: var(--accent); font-weight: 800; }
+.outro .b { margin-top: 22px; font: 400 18px/1.5 var(--font-body); color: var(--muted);
+  max-width: 46%; animation: fade .8s ease-out .3s both; }
+.outro .c { margin-top: 46px; font: 800 11px/1 var(--font-body); letter-spacing: .3em;
+  text-transform: uppercase; color: var(--accent); animation: fade .8s ease-out .5s both; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>window.PAYLOAD = /*__PAYLOAD__*/;</script>
+<script>
+window.SKETCHMAN_STYLE = (function () {
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function mark(series) {
+    return '<div class="mark"><b>' + esc(series.host) + '</b> — ' + esc(series.show) + '</div>';
+  }
+  function lineShape(kind) {
+    var s = {
+      jar: '<path d="M70 62h44v138a24 24 0 0 1-24 24H94a24 24 0 0 1-24-24z" fill="none" stroke="currentColor" stroke-width="3"/>'
+           + '<rect x="64" y="38" width="56" height="24" rx="7" fill="currentColor"/>',
+      bucket: '<path d="M58 86h124l-14 120a16 16 0 0 1-16 14H88a16 16 0 0 1-16-14z" fill="none" stroke="currentColor" stroke-width="3"/>'
+             + '<path d="M78 128c12-6 22 8 34 2s22 8 34 2" fill="none" stroke="currentColor" stroke-width="2" opacity=".45"/>',
+      stone: '<path d="M66 176c0-34 24-62 54-62s54 28 54 62z" fill="currentColor" opacity=".9"/>',
+      clock: '<circle cx="120" cy="120" r="82" fill="none" stroke="currentColor" stroke-width="3"/>'
+            + '<path d="M120 120V70M120 120l34 22" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>'
+    };
+    return '<svg viewBox="0 0 240 240" width="100%" height="100%" style="color:var(--ink)">'
+      + (s[kind] || s.jar) + '</svg>';
+  }
+  function pathFor(points) {
+    var max = Math.max.apply(null, points), min = Math.min.apply(null, points);
+    var span = (max - min) || 1;
+    return points.map(function (v, i) {
+      var x = (i / (points.length - 1)) * 1000;
+      var y = 220 - ((v - min) / span) * 180;
+      return (i ? 'L' : 'M') + x.toFixed(0) + ' ' + y.toFixed(0);
+    }).join(' ');
+  }
+
+  var scenes = {
+    establish: function (c) {
+      var p = c.props || {}, s = window.PAYLOAD.series;
+      return mark(s) + '<div class="est"><div class="dot"></div><div class="floor"></div>'
+        + '<div class="who"><svg viewBox="0 0 100 160" width="74" height="118">'
+        + '<circle cx="50" cy="34" r="20" fill="var(--ink)"/>'
+        + '<path d="M14 158c0-34 16-56 36-56s36 22 36 56z" fill="var(--ink)" opacity=".8"/></svg></div>'
+        + '<div class="caption-card"><div class="k">' + esc(p.kicker || 'scene') + '</div>'
+        + '<div class="p">' + esc(p.place) + '</div>'
+        + '<div class="t">' + esc(p.time || '') + '</div></div></div>';
+    },
+    numbers: function (c) {
+      var p = c.props || {}, s = window.PAYLOAD.series;
+      return mark(s) + '<div class="num"><div class="v">' + esc(p.value) + '</div>'
+        + '<div class="l">' + esc(p.label) + '</div>'
+        + (p.sub ? '<div class="s">' + esc(p.sub) + '</div>' : '') + '</div>';
+    },
+    object: function (c) {
+      var p = c.props || {}, s = window.PAYLOAD.series;
+      return mark(s) + '<div class="obj"><div class="thing">' + lineShape(p.shape) + '</div>'
+        + '<div class="side"><div class="k">' + esc(p.kicker || 'the object') + '</div>'
+        + '<div class="p">' + esc(p.label) + '</div>'
+        + '<div class="s">' + esc(p.sub || '') + '</div></div></div>';
+    },
+    split: function (c) {
+      var p = c.props || {}, l = p.left || {}, r = p.right || {}, s = window.PAYLOAD.series;
+      function box(d, side) {
+        return '<div class="sidebox ' + side + '"><div class="k">' + esc(d.who || '') + '</div>'
+          + '<div class="p">' + esc(d.title) + '</div>'
+          + '<div class="s">' + esc(d.lines ? d.lines.join(' · ') : (d.sub || '')) + '</div></div>';
+      }
+      return mark(s) + '<div class="two">' + box(l, 'left') + '<div class="gap"></div>'
+        + box(r, 'right') + '</div>';
+    },
+    chart: function (c) {
+      var p = c.props || {}, items = p.items || [], s = window.PAYLOAD.series;
+      var values = items.map(function (i) { return Number(i.value); });
+      var d = pathFor(values.length > 1 ? values : [0, 0]);
+      var dots = items.map(function (it, i) {
+        var max = Math.max.apply(null, values), min = Math.min.apply(null, values);
+        var span = (max - min) || 1;
+        var x = (i / (items.length - 1)) * 1000;
+        var y = 220 - ((Number(it.value) - min) / span) * 180;
+        return '<circle class="dots" style="--i:' + i + '" cx="' + x + '" cy="' + y + '" r="7"/>';
+      }).join('');
+      return mark(s) + '<div class="line"><div class="h">' + esc(p.title) + '</div>'
+        + '<div class="u">' + esc(p.unit || '') + '</div>'
+        + '<svg viewBox="0 0 1000 240" preserveAspectRatio="none">'
+        + '<path class="path" d="' + d + '"/>' + dots
+        + '</svg>'
+        + (p.note ? '<div class="cap">' + esc(p.note) + '</div>' : '') + '</div>';
+    },
+    timeline: function (c) {
+      var p = c.props || {}, steps = p.steps || [], s = window.PAYLOAD.series;
+      var body = steps.map(function (st, i) {
+        return '<div class="step" style="--i:' + i + '"><div class="mark"></div>'
+          + '<div class="p">' + esc(st.label) + '</div>'
+          + '<div class="s">' + esc(st.detail || '') + '</div></div>';
+      }).join('');
+      return mark(s) + '<div class="steps"><div class="rule"></div><div class="row">' + body + '</div></div>';
+    },
+    endcard: function (c) {
+      var p = c.props || {}, s = window.PAYLOAD.series;
+      return '<div class="outro"><div class="a">' + esc(s.show) + '<b>.</b></div>'
+        + '<div class="b">' + esc(p.line || 'One idea, twice a week.') + '</div>'
+        + '<div class="c">' + esc(s.signoff) + '</div></div>';
+    }
+  };
+
+  return {
+    renderShot: function (clip) {
+      return (scenes[clip.scene] || scenes.numbers)(clip);
+    }
+  };
+})();
+</script>
+<script>/*__RUNTIME__*/</script>
+</body>
+</html>

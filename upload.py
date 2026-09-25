@@ -335,7 +335,16 @@ def main() -> None:
         if thumb and os.path.exists(thumb):
             set_thumbnail(yt, vid, thumb)
 
+        # Rotation key for the next build: the script id (arjun/payday-trap)
+        # when the manifest knows it, else the video basename.
         topic_key = os.path.basename(video).rsplit(".mp4", 1)[0]
+        manifest_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                     "latest.json")
+        try:
+            with open(manifest_file) as f:
+                topic_key = json.load(f).get("script") or topic_key
+        except (OSError, json.JSONDecodeError):
+            pass
         state.record_upload(fmt, topic_key, f"https://youtu.be/{vid}")
         _log("info", "upload recorded in state", topic_key=topic_key, format=fmt)
     except Exception as e:
