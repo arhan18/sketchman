@@ -12,6 +12,11 @@ HF_OV2="https://huggingface.co/myshell-ai/OpenVoiceV2/resolve/main"
 
 echo "==> python voice deps"
 pip install -q -r "$ROOT/requirements-voice.txt"
+# MeloTTS and OpenVoice install a setup.py that imports MeCab, which is a
+# CJK tokenizer this English-only pipeline never calls. --no-deps skips that
+# build step; their runtime deps are already in requirements-voice.txt.
+pip install -q --no-deps "git+https://github.com/myshell-ai/MeloTTS.git"
+pip install -q --no-deps "git+https://github.com/myshell-ai/OpenVoice.git"
 
 echo "==> MeCab shim (MeloTTS imports it for CJK; this pipeline is English only)"
 SITE="$(python -c 'import site; print(site.getsitepackages()[0])')"

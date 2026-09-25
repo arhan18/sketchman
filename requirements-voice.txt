@@ -31,8 +31,9 @@ jamo
 g2pkk
 eng_to_ipa
 gruut[de,es,fr]
-transformers
-git+https://github.com/myshell-ai/MeloTTS.git
-git+https://github.com/myshell-ai/OpenVoice.git
 whisper_timestamped
 wavmark
+
+# Installed with --no-deps by ci/setup-voice.sh (their setup.py imports MeCab):
+#   git+https://github.com/myshell-ai/MeloTTS.git
+#   git+https://github.com/myshell-ai/OpenVoice.git

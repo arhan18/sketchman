@@ -90,11 +90,10 @@ jobs:
           restore-keys: |
             sketchman-work-
 
-      # House voice (OpenVoice V2 + MeloTTS English). Skips cleanly if it fails:
-      # voice.py then falls back to kokoro/edge instead of failing the run.
+      # House voice (OpenVoice V2 + MeloTTS English). No continue-on-error: if
+      # this fails we want the run to fail loudly rather than silently publish
+      # with the old Kokoro voice.
       - name: voice setup (OpenVoice)
-        id: voice
-        continue-on-error: true
         env:
           VOICE_REF_ARJUN: ${{ secrets.VOICE_REF_ARJUN }}
           VOICE_REF_MIRA: ${{ secrets.VOICE_REF_MIRA }}
