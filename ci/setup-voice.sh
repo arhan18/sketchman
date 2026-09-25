@@ -21,9 +21,21 @@ pip install -q --no-deps "git+https://github.com/myshell-ai/OpenVoice.git"
 echo "==> MeCab shim (MeloTTS imports it for CJK; this pipeline is English only)"
 SITE="$(python -c 'import site; print(site.getsitepackages()[0])')"
 cat > "$SITE/MeCab.py" <<'PY'
+"""Shim for MeCab.
+
+MeloTTS imports MeCab and constructs a Japanese tokenizer while importing
+its language modules, even when the caller only wants English. This pipeline
+is English-only, so construction is allowed to succeed; every actual call
+raises, which can only happen if a CJK path is reached by mistake.
+"""
+
+
 class Tagger:
     def __init__(self, *a, **k):
-        raise RuntimeError("MeCab is not installed; this pipeline is English-only")
+        pass
+
+    def parse(self, *a, **k):
+        raise RuntimeError("MeCab is unavailable; this pipeline is English-only")
 
 
 def __getattr__(name):
