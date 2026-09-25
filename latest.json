@@ -1,9 +1,9 @@
 {
-  "duration_seconds": 35.4,
-  "file_size": 1321007,
+  "duration_seconds": 56.73,
+  "file_size": 1512203,
   "format": "short",
   "meta": "short-mira-emergency-fund-myth.json",
-  "rendered_at": "2026-09-25T14:59:48.334872Z",
+  "rendered_at": "2026-09-25T15:15:05.840053Z",
   "script": "mira/emergency-fund-myth",
   "series": "mira",
   "thumbnail": "short-mira-emergency-fund-myth-thumb.png",
