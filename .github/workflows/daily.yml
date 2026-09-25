@@ -183,6 +183,9 @@ jobs:
           set -o pipefail
           F=${{ steps.fmt.outputs.format }}
           [ "$F" = short ] && FLAG=--short || FLAG=""
+          # upload.py has its own 1/day guard, so the dispatch `force` input has
+          # to reach it or a forced run renders and then skips the upload.
+          if [ "${{ inputs.force }}" = "true" ]; then FLAG="$FLAG --force"; fi
           python upload.py $FLAG 2>&1 | tee /tmp/upload.log
 
       - name: commit state
