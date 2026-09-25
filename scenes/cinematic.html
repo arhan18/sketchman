@@ -230,6 +230,20 @@ window.SKETCHMAN_STYLE = (function () {
   }
   function person(h, w, tone, opts) {
     opts = opts || {};
+    var pose = opts.pose || "stand";
+    var arms = {
+      stand: '<path d="M18 118 q-14 40 -8 66" fill="none" stroke="' + tone + '" stroke-width="14" stroke-linecap="round"/>'
+           + '<path d="M82 118 q14 40 8 66" fill="none" stroke="' + tone + '" stroke-width="14" stroke-linecap="round"/>',
+      point: '<path d="M18 118 q-16 38 -10 62" fill="none" stroke="' + tone + '" stroke-width="14" stroke-linecap="round"/>'
+           + '<path d="M84 120 q26 -14 36 -44" fill="none" stroke="' + tone + '" stroke-width="14" stroke-linecap="round"/>',
+      hold:  '<path d="M20 124 q22 26 30 4" fill="none" stroke="' + tone + '" stroke-width="14" stroke-linecap="round"/>'
+           + '<path d="M80 124 q-22 26 -30 4" fill="none" stroke="' + tone + '" stroke-width="14" stroke-linecap="round"/>',
+      sit:   '<path d="M22 150 h56" fill="none" stroke="' + tone + '" stroke-width="15" stroke-linecap="round"/>'
+    }[pose] || '';
+    var legs = pose === "sit"
+      ? '<path d="M34 168 h46" stroke="#1b232c" stroke-width="18" stroke-linecap="round"/>'
+      : '<path d="M40 150 v22" stroke="#1b232c" stroke-width="16" stroke-linecap="round"/>'
+        + '<path d="M62 150 v22" stroke="#1b232c" stroke-width="16" stroke-linecap="round"/>';
     var rim = opts.rim
       ? '<path d="M10 168c0-50 18-98 40-98s40 48 40 98z" fill="none" stroke="#e5b24a" stroke-width="4" opacity=".95"/>'
       : '';
@@ -238,11 +252,13 @@ window.SKETCHMAN_STYLE = (function () {
       : opts.prop === 'cup'
         ? '<path d="M108 132h22l-3 22h-16z" fill="none" stroke="#e5b24a" stroke-width="3"/>'
         : '';
-    return '<svg viewBox="0 0 100 170" width="' + w + '" height="' + h + '">'
-      + '<circle cx="50" cy="38" r="21" fill="' + tone + '"/>'
-      + '<path d="M44 56h12v14H44z" fill="' + tone + '"/>'
+    return '<svg viewBox="0 0 100 175" width="' + w + '" height="' + h + '">'
+      + legs
+      + arms
       + '<path d="M10 168c0-50 18-98 40-98s40 48 40 98z" fill="' + tone + '"/>'
       + rim + prop
+      + '<path d="M44 56h12v14H44z" fill="' + tone + '"/>'
+      + '<circle cx="50" cy="38" r="21" fill="' + tone + '"/>'
       + '</svg>';
   }
   function prop(kind) {

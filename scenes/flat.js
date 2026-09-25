@@ -46,44 +46,69 @@ window.FLAT = (function () {
       + '<path d="M' + x + ' ' + y + ' q6 -10 12 0"/><path d="M' + (x + 20) + ' ' + y + ' q6 -12 13 0"/></g>';
   }
 
-  /* --- characters: flat, outlined, big head, simple limbs --- */
-  function kid(x, y, s, pose) {
-    pose = pose || "stand";
-    var arm = pose === "point"
-      ? '<path d="M64 150 q46 -18 78 -52" fill="none" stroke="#3f6ea8" stroke-width="15" stroke-linecap="round"/>'
-      : pose === "hold"
-        ? '<path d="M42 156 q42 26 84 0" fill="none" stroke="#3f6ea8" stroke-width="15" stroke-linecap="round"/>'
-        : '<path d="M30 152 q-6 40 -2 62" fill="none" stroke="#3f6ea8" stroke-width="15" stroke-linecap="round"/>'
-          + '<path d="M126 152 q6 40 2 62" fill="none" stroke="#3f6ea8" stroke-width="15" stroke-linecap="round"/>';
+  /* --- characters: flat, outlined, full body (arms + legs), several poses --- */
+  function body(x, y, s, cfg) {
+    var shirt = cfg.shirt, hair = cfg.hair, pose = cfg.pose || "stand";
+    var armL, armR, legL, legR;
+    switch (pose) {
+      case "point":
+        armR = '<path d="M132 148 q46 -6 74 -40" fill="none" stroke="' + shirt + '" stroke-width="17" stroke-linecap="round"/>'
+          + '<circle cx="208" cy="106" r="11" fill="#f6d3ae" stroke="' + INK + '" stroke-width="3"/>';
+        armL = '<path d="M26 152 q-10 34 -6 54" fill="none" stroke="' + shirt + '" stroke-width="17" stroke-linecap="round"/>';
+        legL = '<path d="M62 246 v46" stroke="#3d4658" stroke-width="19" stroke-linecap="round"/>';
+        legR = '<path d="M96 246 v46" stroke="#3d4658" stroke-width="19" stroke-linecap="round"/>';
+        break;
+      case "hold":
+        armL = '<path d="M30 156 q30 30 60 4" fill="none" stroke="' + shirt + '" stroke-width="17" stroke-linecap="round"/>';
+        armR = '<path d="M128 156 q-30 30 -60 4" fill="none" stroke="' + shirt + '" stroke-width="17" stroke-linecap="round"/>';
+        legL = '<path d="M64 246 v46" stroke="#3d4658" stroke-width="19" stroke-linecap="round"/>';
+        legR = '<path d="M94 246 v46" stroke="#3d4658" stroke-width="19" stroke-linecap="round"/>';
+        break;
+      case "shrug":
+        armL = '<path d="M28 150 q-22 14 -14 44" fill="none" stroke="' + shirt + '" stroke-width="17" stroke-linecap="round"/>';
+        armR = '<path d="M130 150 q22 14 14 44" fill="none" stroke="' + shirt + '" stroke-width="17" stroke-linecap="round"/>';
+        legL = '<path d="M64 246 v46" stroke="#3d4658" stroke-width="19" stroke-linecap="round"/>';
+        legR = '<path d="M94 246 v46" stroke="#3d4658" stroke-width="19" stroke-linecap="round"/>';
+        break;
+      case "walk":
+        armL = '<path d="M28 150 q-18 26 -8 48" fill="none" stroke="' + shirt + '" stroke-width="17" stroke-linecap="round"/>';
+        armR = '<path d="M130 148 q20 -14 24 -40" fill="none" stroke="' + shirt + '" stroke-width="17" stroke-linecap="round"/>';
+        legL = '<path d="M66 246 l-16 48" stroke="#3d4658" stroke-width="19" stroke-linecap="round"/>';
+        legR = '<path d="M96 244 l20 46" stroke="#3d4658" stroke-width="19" stroke-linecap="round"/>';
+        break;
+      case "look":
+      case "stand":
+      default:
+        armL = '<path d="M30 152 q-12 32 -8 52" fill="none" stroke="' + shirt + '" stroke-width="17" stroke-linecap="round"/>';
+        armR = '<path d="M128 152 q12 32 8 52" fill="none" stroke="' + shirt + '" stroke-width="17" stroke-linecap="round"/>';
+        legL = '<path d="M64 246 v46" stroke="#3d4658" stroke-width="19" stroke-linecap="round"/>';
+        legR = '<path d="M94 246 v46" stroke="#3d4658" stroke-width="19" stroke-linecap="round"/>';
+    }
     return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')">'
-      + '<ellipse cx="78" cy="246" rx="66" ry="12" fill="' + INK + '" opacity=".12"/>'
-      + arm
-      + '<path d="M26 250 q0 -104 52 -104 t52 104 z" fill="#3f6ea8" stroke="' + INK + '" stroke-width="4" stroke-linejoin="round"/>'
-      + '<path d="M62 146 h32 l-4 22 h-24 z" fill="#f0c9a4" stroke="' + INK + '" stroke-width="3"/>'
-      + '<circle cx="78" cy="96" r="46" fill="#f6d3ae" stroke="' + INK + '" stroke-width="4"/>'
-      + '<path d="' + wob([[32, 92], [40, 60], [74, 50], [108, 56], [124, 92], [100, 76], [60, 74]], true)
-      + '" fill="#3b2f2a" stroke="' + INK + '" stroke-width="3"/>'
-      + '<circle cx="64" cy="98" r="4.5" fill="' + INK + '"/><circle cx="94" cy="98" r="4.5" fill="' + INK + '"/>'
-      + '<path d="M66 116 q12 9 24 -2" fill="none" stroke="' + INK + '" stroke-width="4" stroke-linecap="round"/>'
+      + '<ellipse cx="78" cy="296" rx="62" ry="11" fill="' + INK + '" opacity=".13"/>'
+      + legL + legR
+      + armL
+      + '<path d="M32 140 h92 v112 q-46 16 -92 0z" fill="' + shirt + '" stroke="' + INK + '" stroke-width="4" stroke-linejoin="round"/>'
+      + armR
+      + '<path d="M64 140 h28 v18 h-28z" fill="#f0c9a4" stroke="' + INK + '" stroke-width="3"/>'
+      + '<circle cx="78" cy="88" r="48" fill="#f6d3ae" stroke="' + INK + '" stroke-width="4"/>'
+      + '<path d="' + wob([[30, 86], [38, 52], [78, 40], [116, 54], [126, 88], [98, 68], [58, 68]], true)
+      + '" fill="' + hair + '" stroke="' + INK + '" stroke-width="3"/>'
+      + '<circle cx="64" cy="90" r="5" fill="' + INK + '"/><circle cx="94" cy="90" r="5" fill="' + INK + '"/>'
+      + '<path d="M66 110 q12 9 24 -2" fill="none" stroke="' + INK + '" stroke-width="4" stroke-linecap="round"/>'
       + '</g>';
   }
+  function kid(x, y, s, pose) {
+    return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')">'
+      + body(0, 0, 1, { shirt: "#3f6ea8", hair: "#3b2f2a", pose: pose }) + '</g>';
+  }
   function girl(x, y, s, pose) {
-    pose = pose || "stand";
     var magnifier = pose === "look"
-      ? '<circle cx="132" cy="150" r="30" fill="#ffffff" opacity=".85" stroke="#e4572e" stroke-width="6"/>'
-        + '<path d="M154 172 l26 26" stroke="#e4572e" stroke-width="8" stroke-linecap="round"/>'
+      ? '<g><circle cx="150" cy="164" r="30" fill="#ffffff" opacity=".9" stroke="#e4572e" stroke-width="7"/>'
+        + '<path d="M172 186 l28 28" stroke="#e4572e" stroke-width="9" stroke-linecap="round"/></g>'
       : "";
     return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')">'
-      + '<ellipse cx="76" cy="244" rx="60" ry="11" fill="' + INK + '" opacity=".12"/>'
-      + '<path d="M30 150 q-4 38 0 58" fill="none" stroke="#e4572e" stroke-width="14" stroke-linecap="round"/>'
-      + '<path d="M122 150 q4 38 0 58" fill="none" stroke="#e4572e" stroke-width="14" stroke-linecap="round"/>'
-      + '<path d="M26 250 q0 -100 50 -100 t50 100 z" fill="#e4572e" stroke="' + INK + '" stroke-width="4" stroke-linejoin="round"/>'
-      + '<path d="M60 148 h32 l-4 20 h-24 z" fill="#f0c9a4" stroke="' + INK + '" stroke-width="3"/>'
-      + '<circle cx="76" cy="98" r="44" fill="#f6d3ae" stroke="' + INK + '" stroke-width="4"/>'
-      + '<path d="' + wob([[32, 96], [36, 56], [76, 44], [116, 58], [120, 100], [96, 74], [58, 76]], true)
-      + '" fill="#4a3428" stroke="' + INK + '" stroke-width="3"/>'
-      + '<circle cx="62" cy="100" r="4.5" fill="' + INK + '"/><circle cx="92" cy="100" r="4.5" fill="' + INK + '"/>'
-      + '<path d="M64 118 q12 9 24 -2" fill="none" stroke="' + INK + '" stroke-width="4" stroke-linecap="round"/>'
+      + body(0, 0, 1, { shirt: "#e4572e", hair: "#4a3428", pose: pose })
       + magnifier + '</g>';
   }
 
