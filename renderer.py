@@ -82,6 +82,8 @@ def page_html(series, clips: Sequence[Dict[str, Any]], size: Tuple[int, int]) ->
     html = _read(f"{series.style}.html")
     html = html.replace("/*__BASECSS__*/", _read("base.css"))
     html = html.replace("/*__RUNTIME__*/", _read("runtime.js"))
+    if "/*__FLAT__*/" in html:
+        html = html.replace("/*__FLAT__*/", _read("flat.js"))
     return html.replace("/*__PAYLOAD__*/", json.dumps(payload))
 
 

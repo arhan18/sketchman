@@ -39,6 +39,12 @@ body.vertical .caption-line { max-width: 84%; }
 @keyframes riseSlow { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @keyframes breathe { from { transform: scale(1); } to { transform: scale(1.04); } }
 
+/* ---------- flat cartoon hero (reference style) ---------- */
+.flatwrap { position: absolute; inset: 0; }
+.flatwrap .flat { position: absolute; inset: 0; width: 100%; height: 100%;
+  animation: flatDrift 16s ease-out both; }
+@keyframes flatDrift { from { transform: scale(1.02); } to { transform: scale(1.07); } }
+
 /* ---------- establish: one small figure, enormous sky ---------- */
 .est { position: absolute; inset: 0; }
 .est .floor { position: absolute; left: 0; right: 0; bottom: 26%; height: 1px; background: var(--ink); opacity: .18; }
@@ -143,6 +149,44 @@ window.SKETCHMAN_STYLE = (function () {
   function mark(series) {
     return '<div class="mark"><b>' + esc(series.host) + '</b> — ' + esc(series.show) + '</div>';
   }
+  /* Flat cartoon animation, reference style: flat colour fields, a hand-drawn
+     object with thin outlines, scattered marks, no typography. */
+  function flatHero() {
+    return '<svg class="flat" viewBox="0 0 1280 720" width="1280" height="720">'
+      + '<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="#cfe6ef"/><stop offset="100%" stop-color="#eef2e6"/>'
+      + '</linearGradient></defs>'
+      + '<rect width="1280" height="720" fill="url(#sky)"/>'
+      + '<path d="M0 372 q160 -14 320 -4 t320 -6 q160 -10 320 2 t320 -4 v360 H0z" fill="#c9b98f"/>'
+      + '<g stroke="#5b4632" stroke-width="3" fill="none" opacity=".8" stroke-linecap="round">'
+      + '<path d="M0 372 q160 -14 320 -4 t320 -6 q160 -10 320 2 t320 -4"/>'
+      + '<path d="M120 520 q10 -10 20 0 M150 520 q10 -12 22 0 M980 560 q10 -10 20 0"/>'
+      + '<path d="M60 640 q14 -12 26 0 M240 600 q12 -10 22 0 M1120 620 q14 -12 26 0"/></g>'
+      /* the bowl of money */
+      + '<g transform="translate(640 470)">'
+      + '<ellipse cx="0" cy="60" rx="150" ry="42" fill="#c2542f" opacity=".28"/>'
+      + '<path d="M-150 0 h300 l-38 118 a26 26 0 0 1 -25 20 h-174 a26 26 0 0 1 -25 -20z" fill="#e0713f" stroke="#3f2a1c" stroke-width="4"/>'
+      + '<ellipse cx="0" cy="0" rx="150" ry="34" fill="#f0916a" stroke="#3f2a1c" stroke-width="4"/>'
+      + '<g fill="#f2c14e" stroke="#3f2a1c" stroke-width="3">'
+      + '<circle cx="-58" cy="-4" r="19"/><circle cx="-16" cy="-12" r="21"/>'
+      + '<circle cx="28" cy="-4" r="20"/><circle cx="68" cy="-10" r="17"/>'
+      + '<circle cx="6" cy="8" r="18"/></g></g>'
+      /* three thin spears */
+      + '<g stroke="#3f2a1c" stroke-width="5" fill="#f2c14e" stroke-linecap="round">'
+      + '<path d="M470 90 l60 210" fill="none"/><path d="M470 90 l52 -18 l8 30 z" stroke="none"/>'
+      + '<path d="M640 60 l0 240" fill="none"/><path d="M640 60 l-18 26 l36 0 z" stroke="none"/>'
+      + '<path d="M812 92 l-60 208" fill="none"/><path d="M812 92 l-52 -18 l-8 30 z" stroke="none"/></g>'
+      /* Mira, small, watching */
+      + '<g transform="translate(300 430)">'
+      + '<path d="M-46 150 c0-52 20-78 46-78s46 26 46 78z" fill="#2f3b52" stroke="#1b2432" stroke-width="4"/>'
+      + '<circle cx="0" cy="48" r="32" fill="#f2c9a0" stroke="#1b2432" stroke-width="4"/>'
+      + '<path d="M-32 44 q14 -30 34 -30 t30 30 q-30 -14 -64 0z" fill="#3b2f2a"/>'
+      + '<path d="M-12 54 q12 8 24 0" stroke="#1b2432" stroke-width="3" fill="none" stroke-linecap="round"/>'
+      + '<path d="M30 90 q34 18 24 54" stroke="#1b2432" stroke-width="4" fill="none"/></g>'
+      + '<g stroke="#e0713f" stroke-width="4" fill="none"><circle cx="372" cy="556" r="20"/>'
+      + '<path d="M388 572 l22 22"/></g>'
+      + '</svg>';
+  }
   function mira(pose, w) {
     var lean = pose === 'lean' ? 'rotate(-6deg)' : 'none';
     var magnifier = pose !== 'plain'
@@ -186,6 +230,9 @@ window.SKETCHMAN_STYLE = (function () {
   }
 
   var scenes = {
+    hero: function (c) {
+      return '<div class="flatwrap">' + flatHero() + '</div>';
+    },
     establish: function (c) {
       var p = c.props || {}, s = window.PAYLOAD.series;
       return mark(s) + '<div class="est"><div class="dot"></div><div class="floor"></div>'

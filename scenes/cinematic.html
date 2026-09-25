@@ -44,6 +44,12 @@ body.vertical .caption { bottom: 96px; }
 @keyframes panL { from { transform: translateX(26px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes glowIn { from { opacity: 0; } to { opacity: .5; } }
 
+/* ---------- cel-shaded cartoon hero (reference style) ---------- */
+.cartwrap { position: absolute; inset: 0; }
+.cartwrap .cartoon { position: absolute; inset: 0; width: 100%; height: 100%;
+  animation: cartPush 18s ease-out both; }
+@keyframes cartPush { from { transform: scale(1.02) translateY(6px); } to { transform: scale(1.1) translateY(-6px); } }
+
 /* ---------- establish: depth, light, a lone figure ---------- */
 .scene3d { position: absolute; inset: 0; overflow: hidden; }
 .scene3d .cam { position: absolute; inset: 0; animation: push 11s ease-out both; }
@@ -186,6 +192,42 @@ window.SKETCHMAN_STYLE = (function () {
   function slug(series) {
     return '<div class="slug"><b>' + esc(series.host) + '</b><i></i>' + esc(series.show) + '</div>';
   }
+  /* Cel-shaded character in a drawn environment, reference style: flat fills,
+     bold outlines, one warm key light, a couple of shadow shapes. */
+  function cartoonHero() {
+    return '<svg class="cartoon" viewBox="0 0 1280 720" width="1280" height="720">'
+      + '<rect width="1280" height="720" fill="#3d4756"/>'
+      /* back wall + window with city */
+      + '<rect x="0" y="0" width="1280" height="470" fill="#4a5566"/>'
+      + '<rect x="820" y="90" width="360" height="300" rx="8" fill="#26303c" stroke="#1b232c" stroke-width="6"/>'
+      + '<g fill="#f2c14e" opacity=".9">'
+      + '<rect x="856" y="140" width="26" height="20"/><rect x="910" y="188" width="26" height="20"/>'
+      + '<rect x="978" y="132" width="26" height="20"/><rect x="1046" y="212" width="26" height="20"/>'
+      + '<rect x="1112" y="164" width="26" height="20"/></g>'
+      + '<path d="M820 390 h360" stroke="#1b232c" stroke-width="6"/>'
+      /* desk */
+      + '<path d="M120 470 h1040 l-40 190 H160z" fill="#6b4f36" stroke="#241a12" stroke-width="6"/>'
+      + '<path d="M120 470 h1040 l-8 38 H128z" fill="#87643f" opacity=".8"/>'
+      /* laptop with glow */
+      + '<path d="M470 470 l340 0 l-40 -170 H510z" fill="#2b3542" stroke="#151d25" stroke-width="6"/>'
+      + '<path d="M492 452 l296 0 l-32 -136 H524z" fill="#5f7d94"/>'
+      + '<ellipse cx="640" cy="470" rx="300" ry="60" fill="#9fc6d8" opacity=".18"/>'
+      /* mug + papers */
+      + '<path d="M330 400 v70 a26 26 0 0 0 52 0 v-70z" fill="#e0713f" stroke="#241a12" stroke-width="5"/>'
+      + '<path d="M960 424 h150 v46 h-150z" fill="#efe7d8" stroke="#241a12" stroke-width="5"/>'
+      /* Kabir at the desk, cel-shaded */
+      + '<g transform="translate(180 250)">'
+      + '<path d="M0 300 c0-96 44-150 104-150s104 54 104 150z" fill="#3f4a5c" stroke="#151d25" stroke-width="6"/>'
+      + '<path d="M0 300 c0-96 44-150 104-150v150z" fill="#333d4c" opacity=".9"/>'
+      + '<path d="M78 168 h52 l-6 44 h-40z" fill="#e0b48f" stroke="#151d25" stroke-width="5"/>'
+      + '<circle cx="104" cy="104" r="56" fill="#eec39b" stroke="#151d25" stroke-width="6"/>'
+      + '<path d="M50 96 q6 -62 56 -62 t54 60 q-24 -28 -58 -22 t-52 24z" fill="#2a2320"/>'
+      + '<path d="M78 108 q12 -8 24 0" stroke="#151d25" stroke-width="5" fill="none" stroke-linecap="round"/>'
+      + '<path d="M112 108 q12 -8 24 0" stroke="#151d25" stroke-width="5" fill="none" stroke-linecap="round"/>'
+      + '<path d="M96 138 q16 8 30 -4" stroke="#151d25" stroke-width="5" fill="none" stroke-linecap="round"/>'
+      + '<path d="M60 300 q44 -30 88 0 l-6 -44 q-38 -22 -76 0z" fill="#55627a" stroke="#151d25" stroke-width="5"/>'
+      + '</g></svg>';
+  }
   function person(h, w, tone, opts) {
     opts = opts || {};
     var rim = opts.rim
@@ -225,6 +267,9 @@ window.SKETCHMAN_STYLE = (function () {
   }
 
   var scenes = {
+    hero: function (c) {
+      return '<div class="cartwrap">' + cartoonHero() + '</div>';
+    },
     establish: function (c) {
       var p = c.props || {}, s = window.PAYLOAD.series;
       return slug(s) + '<div class="scene3d"><div class="cam">'
