@@ -377,14 +377,18 @@ def tts_sync(text: str, path: str, series_id: Optional[str] = None) -> None:
     # House voice first when OpenVoice is installed and enabled. It is the
     # slowest engine (~25 min for a 10-min episode on CPU) so a failure falls
     # straight through to Kokoro/Edge rather than stalling the run.
-    if wanted in ("openvoice", "auto") and _openvoice_ready():
-        try:
-            if _openvoice_save(text, path, series_id):
-                return
-        except Exception as e:
-            _log("warn", "openvoice failed, falling back", error=str(e))
-            if engine_override == "openvoice":
-                raise
+    if wanted in ("openvoice", "auto"):
+        if not _openvoice_ready():
+            _log("warn", "openvoice wanted but not ready", engine=wanted,
+                 dir=OPENVOICE_DIR, exists=os.path.isdir(OPENVOICE_DIR))
+        else:
+            try:
+                if _openvoice_save(text, path, series_id):
+                    return
+            except Exception as e:
+                _log("warn", "openvoice failed, falling back", error=str(e))
+                if engine_override == "openvoice":
+                    raise
 
     if engine_override == "edge":
         _log("info", "TTS_ENGINE=edge forced, skipping Kokoro", voice=prof["edge"])
