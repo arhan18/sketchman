@@ -31,6 +31,8 @@ jamo
 g2pkk
 eng_to_ipa
 gruut[de,es,fr]
+unidic-lite
+nltk
 whisper_timestamped
 wavmark
 
