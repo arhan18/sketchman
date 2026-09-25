@@ -1,0 +1,11 @@
+{
+  "duration_seconds": 43.99,
+  "file_size": 1635110,
+  "format": "short",
+  "meta": "short-arjun-24-hour-rule.json",
+  "rendered_at": "2026-09-25T11:37:02.922127Z",
+  "script": "arjun/24-hour-rule",
+  "series": "arjun",
+  "thumbnail": "short-arjun-24-hour-rule-thumb.png",
+  "video": "short-arjun-24-hour-rule.mp4"
+}
