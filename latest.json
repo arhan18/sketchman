@@ -1,11 +1,11 @@
 {
-  "duration_seconds": 683.67,
-  "file_size": 17422400,
-  "format": "long",
-  "meta": "long-arjun-payday-trap.json",
-  "rendered_at": "2026-09-28T11:36:13.600197Z",
-  "script": "arjun/payday-trap",
-  "series": "arjun",
-  "thumbnail": "long-arjun-payday-trap-thumb.png",
-  "video": "long-arjun-payday-trap.mp4"
+  "duration_seconds": 94.13,
+  "file_size": 3284325,
+  "format": "short",
+  "meta": "short-kabir-nine-years-short.json",
+  "rendered_at": "2026-09-29T10:56:14.808793Z",
+  "script": "kabir/nine-years-short",
+  "series": "kabir",
+  "thumbnail": "short-kabir-nine-years-short-thumb.png",
+  "video": "short-kabir-nine-years-short.mp4"
 }

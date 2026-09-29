@@ -5,15 +5,18 @@
     },
     "2026-09-28": {
       "long": "arjun/payday-trap"
+    },
+    "2026-09-29": {
+      "short": "kabir/nine-years-short"
     }
   },
   "last_topics": {
     "long": "arjun/payday-trap",
-    "short": "mira/emergency-fund-myth"
+    "short": "kabir/nine-years-short"
   },
   "last_upload": {
     "long": "2026-09-28",
-    "short": "2026-09-25"
+    "short": "2026-09-29"
   },
   "links": {
     "2026-09-25": {
@@ -21,10 +24,13 @@
     },
     "2026-09-28": {
       "long": "https://youtu.be/QJRl3bwx6KQ"
+    },
+    "2026-09-29": {
+      "short": "https://youtu.be/IpNcClQkNSE"
     }
   },
-  "quota_date": "2026-09-28",
+  "quota_date": "2026-09-29",
   "quota_used": 1601,
-  "updated": "2026-09-28T11:36:23Z",
+  "updated": "2026-09-29T10:56:22Z",
   "version": 1
 }
