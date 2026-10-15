@@ -34,15 +34,15 @@ concurrency:
 env:
   LOG_LEVEL: info
   PYTHONUNBUFFERED: 1
-  TTS_ENGINE: ""  # set to "edge" to force Edge TTS, leave empty for auto-detect
-  VOICE_ENGINE: openvoice  # house voice; falls back to kokoro then edge
+  # Use lightweight Kokoro TTS on CI (local, ~200MB cached). OpenVoice (~3.6GB)
+  # exceeds GitHub Actions runner disk space. Override locally for higher quality.
+  TTS_ENGINE: ""           # set to "edge" to force Edge TTS
+  VOICE_ENGINE: kokoro     # kokoro | edge | openvoice (local only)
 
 jobs:
   render-upload:
     runs-on: ubuntu-latest
-    # The OpenVoice house voice is CPU-only here: ~40-60 min for a 10-minute
-    # episode on top of ~10 min of rendering.
-    timeout-minutes: 180
+    timeout-minutes: 120
     env:
       FORMAT: ""
       UPLOAD_SKIPPED: "0"
@@ -53,6 +53,25 @@ jobs:
 
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
+
+      # Aggressive disk cleanup BEFORE any heavy installs/caches.
+      # GitHub-hosted runners have ~14GB free; OpenVoice cache was ~3.6GB.
+      - name: free disk space
+        run: |
+          set -euo pipefail
+          echo "=== Disk before cleanup ==="
+          df -h /
+          # Remove unnecessary tool caches
+          sudo rm -rf /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL 2>/dev/null || true
+          # Clean apt cache
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/* 2>/dev/null || true
+          # Clean pip cache (we'll rebuild what we need)
+          rm -rf ~/.cache/pip 2>/dev/null || true
+          # Clean npm cache if present
+          rm -rf ~/.npm 2>/dev/null || true
+          echo "=== Disk after cleanup ==="
+          df -h /
 
       - name: system deps
         run: |
@@ -71,32 +90,44 @@ jobs:
           path: models
           key: kokoro-v1-${{ runner.os }}
 
-      # House-voice wheels and the ~320MB OpenVoice/MeloTTS checkpoints are
-      # identical every run, so cache both.
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            voice-openvoice
-          key: openvoice-v2-${{ runner.os }}-${{ hashFiles('requirements-voice.txt') }}
-
-      # Work dir also carries work/.state.cache.json (second state store; the
+      # Work dir carries work/.state.cache.json (second state store; the
       # git-committed state.json is the first). Restore best-effort with a
       # fallback key so a cache miss never fails the job.
       - uses: actions/cache@v4
         with:
           path: work
-          key: sketchman-work-${{ github.run_number }}
+          key: sketchman-work-${{ runner.os }}-${{ hashFiles('state.py') }}
           restore-keys: |
-            sketchman-work-
+            sketchman-work-${{ runner.os }}-
 
-      # House voice (OpenVoice V2 + MeloTTS English). No continue-on-error: if
-      # this fails we want the run to fail loudly rather than silently publish
-      # with the old Kokoro voice.
-      - name: voice setup (OpenVoice)
+      # Voice setup (OpenVoice) - OPTIONAL on CI, continue-on-error.
+      # Heavy (~3.6GB with wheels+checkpoints). Only runs if VOICE_ENGINE=openvoice.
+      # On CI we use Kokoro (lightweight). OpenVoice is for local high-quality runs.
+      - name: voice setup (OpenVoice - optional, CI skips unless forced)
+        if: env.VOICE_ENGINE == 'openvoice'
+        continue-on-error: true
         run: |
+          echo "VOICE_ENGINE=openvoice requested — attempting OpenVoice setup..."
           chmod +x ci/setup-voice.sh
           ./ci/setup-voice.sh
+          echo "openvoice_ready=true" >> "$GITHUB_ENV"
+
+      - name: verify TTS engine availability
+        run: |
+          python3 - <<'PY'
+          import os, voice
+          engine = os.getenv("VOICE_ENGINE", "kokoro")
+          print(f"Configured VOICE_ENGINE: {engine}")
+          if engine == "openvoice":
+              ready = voice._openvoice_ready()
+              print(f"OpenVoice ready: {ready}")
+              if not ready:
+                  print("OpenVoice not ready; will fall back to Kokoro/Edge")
+          elif engine == "kokoro":
+              ok = voice._kokoro_probe()
+              print(f"Kokoro probe: {ok}")
+          elif engine == "edge":
+              print("Edge TTS selected (no local models needed)")
 
       - name: pick format
         id: fmt
@@ -231,6 +262,8 @@ jobs:
             REASON="pipeline error — grep '[fail]' in step logs"
           elif grep -q "quotaExceeded\|dailyLimitExceeded" /tmp/*.log 2>/dev/null; then
             REASON="YouTube API quota exceeded — wait for daily reset or request quota increase"
+          elif grep -q "No space left on device" /tmp/*.log 2>/dev/null; then
+            REASON="GitHub Actions runner out of disk space — check cache sizes"
           fi
           python alerts.py \
             "Sketchman FAILED: $REASON" \
