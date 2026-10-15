@@ -1,11 +1,11 @@
 {
-  "duration_seconds": 94.13,
-  "file_size": 3284325,
+  "duration_seconds": 43.99,
+  "file_size": 1273951,
   "format": "short",
-  "meta": "short-kabir-nine-years-short.json",
-  "rendered_at": "2026-09-29T10:56:14.808793Z",
-  "script": "kabir/nine-years-short",
-  "series": "kabir",
-  "thumbnail": "short-kabir-nine-years-short-thumb.png",
-  "video": "short-kabir-nine-years-short.mp4"
+  "meta": "short-arjun-24-hour-rule.json",
+  "rendered_at": "2026-10-15T12:08:19.664708Z",
+  "script": "arjun/24-hour-rule",
+  "series": "arjun",
+  "thumbnail": "short-arjun-24-hour-rule-thumb.png",
+  "video": "short-arjun-24-hour-rule.mp4"
 }
