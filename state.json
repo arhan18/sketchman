@@ -10,15 +10,16 @@
       "short": "kabir/nine-years-short"
     },
     "2026-10-15": {
+      "long": "mira/budgeting-failed",
       "short": "arjun/24-hour-rule"
     }
   },
   "last_topics": {
-    "long": "arjun/payday-trap",
+    "long": "mira/budgeting-failed",
     "short": "arjun/24-hour-rule"
   },
   "last_upload": {
-    "long": "2026-09-28",
+    "long": "2026-10-15",
     "short": "2026-10-15"
   },
   "links": {
@@ -32,11 +33,12 @@
       "short": "https://youtu.be/IpNcClQkNSE"
     },
     "2026-10-15": {
+      "long": "https://youtu.be/WpJtMs9ZfRw",
       "short": "https://youtu.be/nNsVIti4IPU"
     }
   },
   "quota_date": "2026-10-15",
-  "quota_used": 1602,
-  "updated": "2026-10-15T12:08:24Z",
+  "quota_used": 3203,
+  "updated": "2026-10-15T12:25:04Z",
   "version": 1
 }
