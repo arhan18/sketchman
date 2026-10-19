@@ -1,11 +1,11 @@
 {
-  "duration_seconds": 35.4,
-  "file_size": 988037,
-  "format": "short",
-  "meta": "short-mira-emergency-fund-myth.json",
-  "rendered_at": "2026-10-16T09:12:49.175155Z",
-  "script": "mira/emergency-fund-myth",
-  "series": "mira",
-  "thumbnail": "short-mira-emergency-fund-myth-thumb.png",
-  "video": "short-mira-emergency-fund-myth.mp4"
+  "duration_seconds": 430.82,
+  "file_size": 20710247,
+  "format": "long",
+  "meta": "long-kabir-nine-years-nothing.json",
+  "rendered_at": "2026-10-19T10:19:40.765539Z",
+  "script": "kabir/nine-years-nothing",
+  "series": "kabir",
+  "thumbnail": "long-kabir-nine-years-nothing-thumb.png",
+  "video": "long-kabir-nine-years-nothing.mp4"
 }
