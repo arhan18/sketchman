@@ -21,14 +21,17 @@
     },
     "2026-10-20": {
       "short": "kabir/nine-years-short"
+    },
+    "2026-10-22": {
+      "long": "arjun/payday-trap"
     }
   },
   "last_topics": {
-    "long": "kabir/nine-years-nothing",
+    "long": "arjun/payday-trap",
     "short": "kabir/nine-years-short"
   },
   "last_upload": {
-    "long": "2026-10-19",
+    "long": "2026-10-22",
     "short": "2026-10-20"
   },
   "links": {
@@ -53,10 +56,13 @@
     },
     "2026-10-20": {
       "short": "https://youtu.be/89skRaoAMw8"
+    },
+    "2026-10-22": {
+      "long": "https://youtu.be/bqe4IuoVgVk"
     }
   },
-  "quota_date": "2026-10-20",
+  "quota_date": "2026-10-22",
   "quota_used": 1601,
-  "updated": "2026-10-20T09:36:56Z",
+  "updated": "2026-10-22T09:53:21Z",
   "version": 1
 }
