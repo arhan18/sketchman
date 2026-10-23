@@ -24,15 +24,18 @@
     },
     "2026-10-22": {
       "long": "arjun/payday-trap"
+    },
+    "2026-10-23": {
+      "short": "arjun/24-hour-rule"
     }
   },
   "last_topics": {
     "long": "arjun/payday-trap",
-    "short": "kabir/nine-years-short"
+    "short": "arjun/24-hour-rule"
   },
   "last_upload": {
     "long": "2026-10-22",
-    "short": "2026-10-20"
+    "short": "2026-10-23"
   },
   "links": {
     "2026-09-25": {
@@ -59,10 +62,13 @@
     },
     "2026-10-22": {
       "long": "https://youtu.be/bqe4IuoVgVk"
+    },
+    "2026-10-23": {
+      "short": "https://youtu.be/T6PcHAtqDvM"
     }
   },
-  "quota_date": "2026-10-22",
+  "quota_date": "2026-10-23",
   "quota_used": 1601,
-  "updated": "2026-10-22T09:53:21Z",
+  "updated": "2026-10-23T09:30:49Z",
   "version": 1
 }

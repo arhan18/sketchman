@@ -1,11 +1,11 @@
 {
-  "duration_seconds": 371.47,
-  "file_size": 13459378,
-  "format": "long",
-  "meta": "long-arjun-payday-trap.json",
-  "rendered_at": "2026-10-22T09:53:16.157380Z",
-  "script": "arjun/payday-trap",
+  "duration_seconds": 43.13,
+  "file_size": 1281172,
+  "format": "short",
+  "meta": "short-arjun-24-hour-rule.json",
+  "rendered_at": "2026-10-23T09:30:45.024118Z",
+  "script": "arjun/24-hour-rule",
   "series": "arjun",
-  "thumbnail": "long-arjun-payday-trap-thumb.png",
-  "video": "long-arjun-payday-trap.mp4"
+  "thumbnail": "short-arjun-24-hour-rule-thumb.png",
+  "video": "short-arjun-24-hour-rule.mp4"
 }
