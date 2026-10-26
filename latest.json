@@ -1,11 +1,11 @@
 {
-  "duration_seconds": 43.13,
-  "file_size": 1281172,
-  "format": "short",
-  "meta": "short-arjun-24-hour-rule.json",
-  "rendered_at": "2026-10-23T09:30:45.024118Z",
-  "script": "arjun/24-hour-rule",
-  "series": "arjun",
-  "thumbnail": "short-arjun-24-hour-rule-thumb.png",
-  "video": "short-arjun-24-hour-rule.mp4"
+  "duration_seconds": 342.78,
+  "file_size": 9718292,
+  "format": "long",
+  "meta": "long-mira-budgeting-failed.json",
+  "rendered_at": "2026-10-26T10:35:54.600383Z",
+  "script": "mira/budgeting-failed",
+  "series": "mira",
+  "thumbnail": "long-mira-budgeting-failed-thumb.png",
+  "video": "long-mira-budgeting-failed.mp4"
 }
