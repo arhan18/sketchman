@@ -1,11 +1,11 @@
 {
-  "duration_seconds": 342.78,
-  "file_size": 9718292,
-  "format": "long",
-  "meta": "long-mira-budgeting-failed.json",
-  "rendered_at": "2026-10-26T10:35:54.600383Z",
-  "script": "mira/budgeting-failed",
+  "duration_seconds": 34.4,
+  "file_size": 989957,
+  "format": "short",
+  "meta": "short-mira-emergency-fund-myth.json",
+  "rendered_at": "2026-10-27T09:59:26.417371Z",
+  "script": "mira/emergency-fund-myth",
   "series": "mira",
-  "thumbnail": "long-mira-budgeting-failed-thumb.png",
-  "video": "long-mira-budgeting-failed.mp4"
+  "thumbnail": "short-mira-emergency-fund-myth-thumb.png",
+  "video": "short-mira-emergency-fund-myth.mp4"
 }

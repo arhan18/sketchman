@@ -30,15 +30,18 @@
     },
     "2026-10-26": {
       "long": "mira/budgeting-failed"
+    },
+    "2026-10-27": {
+      "short": "mira/emergency-fund-myth"
     }
   },
   "last_topics": {
     "long": "mira/budgeting-failed",
-    "short": "arjun/24-hour-rule"
+    "short": "mira/emergency-fund-myth"
   },
   "last_upload": {
     "long": "2026-10-26",
-    "short": "2026-10-23"
+    "short": "2026-10-27"
   },
   "links": {
     "2026-09-25": {
@@ -71,10 +74,13 @@
     },
     "2026-10-26": {
       "long": "https://youtu.be/2MPSgmEigBo"
+    },
+    "2026-10-27": {
+      "short": "https://youtu.be/3wfu74GXH4g"
     }
   },
-  "quota_date": "2026-10-26",
+  "quota_date": "2026-10-27",
   "quota_used": 1601,
-  "updated": "2026-10-26T10:35:58Z",
+  "updated": "2026-10-27T09:59:30Z",
   "version": 1
 }
