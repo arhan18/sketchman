@@ -33,14 +33,17 @@
     },
     "2026-10-27": {
       "short": "mira/emergency-fund-myth"
+    },
+    "2026-10-29": {
+      "long": "kabir/nine-years-nothing"
     }
   },
   "last_topics": {
-    "long": "mira/budgeting-failed",
+    "long": "kabir/nine-years-nothing",
     "short": "mira/emergency-fund-myth"
   },
   "last_upload": {
-    "long": "2026-10-26",
+    "long": "2026-10-29",
     "short": "2026-10-27"
   },
   "links": {
@@ -77,10 +80,13 @@
     },
     "2026-10-27": {
       "short": "https://youtu.be/3wfu74GXH4g"
+    },
+    "2026-10-29": {
+      "long": "https://youtu.be/vxhl7GJxCRc"
     }
   },
-  "quota_date": "2026-10-27",
+  "quota_date": "2026-10-29",
   "quota_used": 1601,
-  "updated": "2026-10-27T09:59:30Z",
+  "updated": "2026-10-29T11:12:15Z",
   "version": 1
 }
