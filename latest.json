@@ -1,11 +1,11 @@
 {
-  "duration_seconds": 423.67,
-  "file_size": 20709865,
-  "format": "long",
-  "meta": "long-kabir-nine-years-nothing.json",
-  "rendered_at": "2026-10-29T11:12:10.602656Z",
-  "script": "kabir/nine-years-nothing",
+  "duration_seconds": 57.93,
+  "file_size": 2745100,
+  "format": "short",
+  "meta": "short-kabir-nine-years-short.json",
+  "rendered_at": "2026-10-30T11:00:43.985802Z",
+  "script": "kabir/nine-years-short",
   "series": "kabir",
-  "thumbnail": "long-kabir-nine-years-nothing-thumb.png",
-  "video": "long-kabir-nine-years-nothing.mp4"
+  "thumbnail": "short-kabir-nine-years-short-thumb.png",
+  "video": "short-kabir-nine-years-short.mp4"
 }
