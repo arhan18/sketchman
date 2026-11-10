@@ -54,15 +54,18 @@
     },
     "2026-11-09": {
       "long": "kabir/nine-years-nothing"
+    },
+    "2026-11-10": {
+      "short": "kabir/nine-years-short"
     }
   },
   "last_topics": {
     "long": "kabir/nine-years-nothing",
-    "short": "mira/emergency-fund-myth"
+    "short": "kabir/nine-years-short"
   },
   "last_upload": {
     "long": "2026-11-09",
-    "short": "2026-11-06"
+    "short": "2026-11-10"
   },
   "links": {
     "2026-09-25": {
@@ -119,10 +122,13 @@
     },
     "2026-11-09": {
       "long": "https://youtu.be/Hir0ugIobh0"
+    },
+    "2026-11-10": {
+      "short": "https://youtu.be/vQvin8KU8vQ"
     }
   },
-  "quota_date": "2026-11-09",
+  "quota_date": "2026-11-10",
   "quota_used": 1601,
-  "updated": "2026-11-09T13:26:40Z",
+  "updated": "2026-11-10T12:54:40Z",
   "version": 1
 }
